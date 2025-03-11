@@ -1,104 +1,415 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const cardsData = {
-    giftCards: [
-        { name: 'Steam', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg' },
-        { name: 'RBL', imgSrc: 'https://via.placeholder.com/150?text=RBL' },
-        { name: 'Google Play Gift Card', imgSrc: 'https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' },
-        { name: 'iTunes Gift Card', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/ITunes_12.2_logo.png' },
-        { name: 'Playstation Network', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/4/47/PlayStation_Network_logo.svg' },
-        { name: 'Xbox Gift Card', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg' },
-        { name: 'Fortnite', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Fortnite_F_lettermark_logo.svg' },
-        { name: 'Razer Gold', imgSrc: 'https://assets.razerzone.com/eeimages/support/razer-gold/razer-gold-logo.png' },
-        { name: 'Amazon Gift Card', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg' },
-        { name: 'Nintendo', imgSrc: 'https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg' },
-    ],
-    items: [
-        { name: 'RBL', imgSrc: 'https://via.placeholder.com/150?text=RBL' },
-        { name: 'Blox Fruits', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/8/8f/Blox_Fruits_Icon.png' },
-        { name: 'Anime Adventures', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/5/5e/Anime_Adventures_Icon.png' },
-        { name: 'Toilet Tower', imgSrc: 'https://via.placeholder.com/150?text=Toilet+Tower' },
-        { name: 'Survive The Killer', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/4/4f/Survive_The_Killer_Icon.png' },
-        { name: 'Blade Ball', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/6/6d/Blade_Ball_Icon.png' },
-        { name: 'Murder Mystery 2', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/8/8e/Murder_Mystery_2_Icon.png' },
-        { name: 'Adopt Me Trading', imgSrc: 'https://static.wikia.nocookie.net/roblox/images/2/2c/Adopt_Me_Icon.png' },
-        { name: 'Anime Defenders', imgSrc: 'https://via.placeholder.com/150?text=Anime+Defenders' },
-        { name: 'Fisch', imgSrc: 'https://via.placeholder.com/150?text=Fisch' },
-    ],
-};
+// Mock data for game cards
+const gameCards = [
+  {
+    id: 1,
+    title: 'Mobile Legends',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $1.99',
+    category: 'Mobile Games',
+    discount: '15% OFF'
+  },
+  {
+    id: 2,
+    title: 'Steam Wallet',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $5.00',
+    category: 'PC Games',
+    discount: '10% OFF'
+  },
+  {
+    id: 3,
+    title: 'PUBG Mobile',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $2.99',
+    category: 'Mobile Games',
+    trending: true
+  },
+  {
+    id: 4,
+    title: 'PlayStation Store',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $10.00',
+    category: 'Console',
+    discount: '5% OFF'
+  },
+  {
+    id: 5,
+    title: 'Free Fire',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $0.99',
+    category: 'Mobile Games',
+    trending: true
+  },
+  {
+    id: 6,
+    title: 'Nintendo eShop',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $15.00',
+    category: 'Console',
+    discount: '8% OFF'
+  },
+  {
+    id: 7,
+    title: 'Valorant',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $4.99',
+    category: 'PC Games',
+    trending: true
+  },
+  {
+    id: 8,
+    title: 'Roblox',
+    image: 'https://via.placeholder.com/150',
+    price: 'From $3.00',
+    category: 'PC Games',
+    discount: '12% OFF'
+  }
+];
 
-const Card = ({ name, imgSrc, index }) => (
-    <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
-        whileHover={{ 
-            y: -8,
-            boxShadow: "0 10px 20px rgba(0, 0, 0, 0.2)",
-            border: "1px solid #6366f1"
-        }}
-        className="bg-gray-800 rounded-xl overflow-hidden shadow-lg p-4 border border-gray-700 hover:bg-gray-750 transition-all duration-300"
-    >
-        <div className="relative h-32 mb-3 overflow-hidden rounded-lg bg-gray-700/50 flex items-center justify-center p-2">
-            <img 
-                src={imgSrc} 
-                alt={name} 
-                className="w-auto h-auto max-h-full max-w-full object-contain transition-transform duration-500 hover:scale-110" 
-            />
+const Cards = () => {
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [filteredCards, setFilteredCards] = useState(gameCards);
+  const [isInitialRender, setIsInitialRender] = useState(true);
+
+  useEffect(() => {
+    // Set initial render to false after mount
+    const timer = setTimeout(() => setIsInitialRender(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleFilterChange = (filter) => {
+    setActiveFilter(filter);
+    
+    if (filter === 'All') {
+      setFilteredCards(gameCards);
+    } else if (filter === 'Trending') {
+      setFilteredCards(gameCards.filter(card => card.trending));
+    } else if (filter === 'Discounted') {
+      setFilteredCards(gameCards.filter(card => card.discount));
+    } else {
+      setFilteredCards(gameCards.filter(card => card.category === filter));
+    }
+  };
+
+  // Enhanced animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.3
+      }
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        staggerChildren: 0.05,
+        staggerDirection: -1
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { 
+      y: 50, 
+      opacity: 0, 
+      scale: 0.9,
+      rotateX: 15
+    },
+    visible: (i) => ({
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      rotateX: 0,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        delay: isInitialRender ? i * 0.1 : 0
+      }
+    }),
+    exit: { 
+      y: -30, 
+      opacity: 0,
+      scale: 0.9,
+      transition: { 
+        duration: 0.2 
+      }
+    },
+    hover: {
+      y: -15,
+      scale: 1.03,
+      boxShadow: "0 25px 25px -5px rgba(99, 102, 241, 0.3)",
+      transition: { 
+        duration: 0.3,
+        type: "spring",
+        stiffness: 300
+      }
+    }
+  };
+
+  const titleVariants = {
+    hidden: { opacity: 0, y: -30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 24,
+        delay: 0.1
+      }
+    }
+  };
+
+  const underlineVariants = {
+    hidden: { width: 0, opacity: 0 },
+    visible: { 
+      width: "6rem", 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 500, 
+        damping: 30,
+        delay: 0.4 
+      }
+    }
+  };
+
+  const filterButtonVariants = {
+    inactive: { 
+      scale: 1, 
+      backgroundColor: "rgb(31, 41, 55)",
+      boxShadow: "0 1px 2px rgba(0, 0, 0, 0.2)"
+    },
+    active: { 
+      scale: 1.05, 
+      backgroundColor: "rgb(79, 70, 229)",
+      boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 15
+      }
+    },
+    hover: { 
+      scale: 1.03, 
+      boxShadow: "0 4px 8px rgba(79, 70, 229, 0.2)",
+      transition: { duration: 0.2 } 
+    },
+    tap: {
+      scale: 0.95
+    }
+  };
+
+  const buttonVariants = {
+    rest: { 
+      scale: 1, 
+      background: "linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241))"
+    },
+    hover: { 
+      scale: 1.05,
+      background: "linear-gradient(to right, rgb(67, 56, 202), rgb(79, 70, 229))",
+      boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.3)",
+      y: -2,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    },
+    tap: {
+      scale: 0.98,
+      boxShadow: "0 5px 10px -3px rgba(79, 70, 229, 0.3)",
+      y: 0
+    }
+  };
+
+  const badgeVariants = {
+    initial: { scale: 0, opacity: 0, rotate: -45 },
+    animate: { 
+      scale: 1, 
+      opacity: 1, 
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 15,
+        delay: 0.2
+      }
+    }
+  };
+
+  const fadeInVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.5, delay: 0.3 }
+    }
+  };
+
+  return (
+    <div className="pb-16">
+      {/* Category Title with Enhanced Animation */}
+      <div className="mb-10 relative">
+        <motion.h2 
+          className="text-3xl font-bold text-center text-white mb-3"
+          variants={titleVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          Popular Categories
+        </motion.h2>
+        <div className="flex justify-center">
+          <motion.div 
+            className="h-1 bg-indigo-600 rounded-full"
+            variants={underlineVariants}
+            initial="hidden"
+            animate="visible"
+          ></motion.div>
         </div>
-        <p className="text-center font-semibold text-gray-200 py-2">{name}</p>
-        <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full mt-2 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-300"
-        >
-            Buy Now
-        </motion.button>
-    </motion.div>
-);
+      </div>
 
-const SectionTitle = ({ title }) => (
-    <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.7 }}
-        className="flex items-center mb-6"
-    >
-        <h2 className="text-3xl font-bold text-white">{title}</h2>
-        <div className="h-1 bg-indigo-600 flex-grow ml-4 rounded-full"></div>
-    </motion.div>
-);
+      {/* Filter Buttons with Enhanced Animation */}
+      <motion.div 
+        className="flex flex-wrap justify-center gap-3 mb-12"
+        variants={fadeInVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {['All', 'Trending', 'Discounted', 'Mobile Games', 'PC Games', 'Console'].map((filter) => (
+          <motion.button
+            key={filter}
+            onClick={() => handleFilterChange(filter)}
+            className={`px-4 py-2 rounded-full font-medium text-white`}
+            variants={filterButtonVariants}
+            initial="inactive"
+            animate={activeFilter === filter ? "active" : "inactive"}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            {filter}
+          </motion.button>
+        ))}
+      </motion.div>
 
-const Cards = () => (
-    <div className="container mx-auto px-4 py-12 bg-gray-900 text-white">
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="mb-12"
+      {/* Enhanced Cards Grid with AnimatePresence for smooth transitions */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeFilter}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
         >
-            <SectionTitle title="Gift Cards" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {cardsData.giftCards.map((card, index) => (
-                    <Card key={index} name={card.name} imgSrc={card.imgSrc} index={index} />
-                ))}
-            </div>
+          {filteredCards.map((card, index) => (
+            <motion.div
+              custom={index}
+              key={card.id}
+              className="bg-gray-800 rounded-xl overflow-hidden shadow-lg"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              whileHover="hover"
+            >
+              {/* Card Image with Parallax Effect */}
+              <motion.div 
+                className="relative overflow-hidden h-48"
+                whileHover={{ scale: 1.1, transition: { duration: 0.5 } }}
+              >
+                <motion.img 
+                  src={card.image} 
+                  alt={card.title} 
+                  className="w-full h-48 object-cover"
+                  whileHover={{ scale: 1.1, transition: { duration: 1.5 } }}
+                />
+                
+                {/* Enhanced Badge Animation */}
+                {card.discount && (
+                  <motion.div 
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full"
+                    variants={badgeVariants}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    {card.discount}
+                  </motion.div>
+                )}
+                {card.trending && !card.discount && (
+                  <motion.div 
+                    className="absolute top-2 right-2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full"
+                    variants={badgeVariants}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    TRENDING
+                  </motion.div>
+                )}
+              </motion.div>
+              
+              {/* Card Content with Staggered Children */}
+              <div className="p-5">
+                <motion.div 
+                  className="text-xs text-gray-400 mb-2"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {card.category}
+                </motion.div>
+                
+                <motion.h3 
+                  className="font-bold text-lg mb-2 text-white"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {card.title}
+                </motion.h3>
+                
+                <motion.div 
+                  className="text-indigo-400 font-medium"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  {card.price}
+                </motion.div>
+                
+                <motion.button
+                  className="w-full text-white font-bold py-2 px-4 rounded-lg mt-5"
+                  variants={buttonVariants}
+                  initial="rest"
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Buy Now
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
-        
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+      </AnimatePresence>
+
+      {/* No results message with animation */}
+      {filteredCards.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center text-gray-400 mt-10"
         >
-            <SectionTitle title="Items" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {cardsData.items.map((card, index) => (
-                    <Card key={index} name={card.name} imgSrc={card.imgSrc} index={index} />
-                ))}
-            </div>
+          <p className="text-xl">No games found in this category</p>
+          <p className="mt-2">Try selecting a different category</p>
         </motion.div>
+      )}
     </div>
-);
+  );
+};
 
 export default Cards;
