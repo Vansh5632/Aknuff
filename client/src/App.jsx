@@ -3,12 +3,9 @@ import { AnimatePresence } from "framer-motion";
 import Home from "./pages/Home";
 import Product from "./pages/Product";
 import Cart from "./pages/Cart";
-<<<<<<< HEAD
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-=======
-import AuthPage from "./pages/Login";
->>>>>>> dd18115 (auth page)
 import Profile from "./pages/Profile";
 
 function App() {
@@ -19,12 +16,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/product/:id" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
-<<<<<<< HEAD
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-=======
-          <Route path="/login" element={<AuthPage />} />
->>>>>>> dd18115 (auth page)
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </AnimatePresence>
