@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -54,8 +54,8 @@ const Login = () => {
         // Simulate API call
         setTimeout(() => {
             setIsLoading(false);
-            console.log("Login attempt with:", { email, password });
-            navigate('/'); // Redirect to homepage after login
+            console.log("Registration attempt with:", { email, password });
+            navigate('/'); // Redirect to homepage after registration
         }, 2000);
     };
 
@@ -90,7 +90,7 @@ const Login = () => {
                 />
                 {[...Array(20)].map((_, i) => (
                     <motion.div
-                        key={`hex-login-${i}`}
+                        key={`hex-register-${i}`}
                         className="absolute"
                         style={{
                             left: `${Math.random() * 100}%`,
@@ -115,7 +115,7 @@ const Login = () => {
                 ))}
             </div>
 
-            {/* Login Form */}
+            {/* Register Form */}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -126,7 +126,7 @@ const Login = () => {
                     className="text-3xl font-extrabold mb-6 text-center bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent"
                     style={{ textShadow: "0 0 15px rgba(99, 102, 241, 0.5)" }}
                 >
-                    Welcome to Aknuff
+                    Join Aknuff
                 </motion.h2>
 
                 <motion.form
@@ -193,10 +193,10 @@ const Login = () => {
                         {isLoading ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Logging in...</span>
+                                <span>Registering...</span>
                             </>
                         ) : (
-                            <span>Login</span>
+                            <span>Register</span>
                         )}
                     </motion.button>
                 </motion.form>
@@ -239,16 +239,16 @@ const Login = () => {
                     )}
                 </motion.button>
 
-                {/* Sign Up Link */}
+                {/* Login Link */}
                 <motion.div className="mt-6 text-center">
                     <p className="text-gray-400">
-                        Don't have an account?{" "}
+                        Already have an account?{" "}
                         <motion.a
-                            href="/register"
+                            href="/login"
                             className="text-[#a855f7] hover:underline"
                             whileHover={{ color: "#6366f1", scale: 1.05 }}
                         >
-                            Sign up
+                            Login
                         </motion.a>
                     </p>
                 </motion.div>
@@ -268,4 +268,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Search, User, Bell, Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
 const Navbar = () => {
     const isLoggedIn = false; // Replace with actual authentication check
@@ -9,7 +10,8 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const { scrollY } = useScroll();
     const [cartCount, setCartCount] = useState(3); // Example cart count
-    
+    const navigate = useNavigate(); // Hook for navigation
+
     // Transform properties based on scroll
     const navbarBackground = useTransform(
         scrollY, 
@@ -164,6 +166,11 @@ const Navbar = () => {
         open: { rotate: 180, transition: { duration: 0.6 } }
     };
 
+    // Handle login button click
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
     return (
         <motion.div
             initial="hidden"
@@ -304,6 +311,7 @@ const Navbar = () => {
                                 </motion.div>
                             ) : (
                                 <motion.button 
+                                    onClick={handleLoginClick} // Redirect to login page
                                     variants={buttonHoverVariants}
                                     initial="initial"
                                     whileHover="hover"

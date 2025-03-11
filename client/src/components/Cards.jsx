@@ -3,70 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Mock data for game cards
 const gameCards = [
-  {
-    id: 1,
-    title: 'Mobile Legends',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $1.99',
-    category: 'Mobile Games',
-    discount: '15% OFF'
-  },
-  {
-    id: 2,
-    title: 'Steam Wallet',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $5.00',
-    category: 'PC Games',
-    discount: '10% OFF'
-  },
-  {
-    id: 3,
-    title: 'PUBG Mobile',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $2.99',
-    category: 'Mobile Games',
-    trending: true
-  },
-  {
-    id: 4,
-    title: 'PlayStation Store',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $10.00',
-    category: 'Console',
-    discount: '5% OFF'
-  },
-  {
-    id: 5,
-    title: 'Free Fire',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $0.99',
-    category: 'Mobile Games',
-    trending: true
-  },
-  {
-    id: 6,
-    title: 'Nintendo eShop',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $15.00',
-    category: 'Console',
-    discount: '8% OFF'
-  },
-  {
-    id: 7,
-    title: 'Valorant',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $4.99',
-    category: 'PC Games',
-    trending: true
-  },
-  {
-    id: 8,
-    title: 'Roblox',
-    image: 'https://via.placeholder.com/150',
-    price: 'From $3.00',
-    category: 'PC Games',
-    discount: '12% OFF'
-  }
+  { id: 1, title: 'Mobile Legends', image: 'https://via.placeholder.com/150', price: 'From $1.99', category: 'Mobile Games', discount: '15% OFF' },
+  { id: 2, title: 'Steam Wallet', image: 'https://via.placeholder.com/150', price: 'From $5.00', category: 'PC Games', discount: '10% OFF' },
+  { id: 3, title: 'PUBG Mobile', image: 'https://via.placeholder.com/150', price: 'From $2.99', category: 'Mobile Games', trending: true },
+  { id: 4, title: 'PlayStation Store', image: 'https://via.placeholder.com/150', price: 'From $10.00', category: 'Console', discount: '5% OFF' },
+  { id: 5, title: 'Free Fire', image: 'https://via.placeholder.com/150', price: 'From $0.99', category: 'Mobile Games', trending: true },
+  { id: 6, title: 'Nintendo eShop', image: 'https://via.placeholder.com/150', price: 'From $15.00', category: 'Console', discount: '8% OFF' },
+  { id: 7, title: 'Valorant', image: 'https://via.placeholder.com/150', price: 'From $4.99', category: 'PC Games', trending: true },
+  { id: 8, title: 'Roblox', image: 'https://via.placeholder.com/150', price: 'From $3.00', category: 'PC Games', discount: '12% OFF' },
 ];
 
 const Cards = () => {
@@ -75,14 +19,12 @@ const Cards = () => {
   const [isInitialRender, setIsInitialRender] = useState(true);
 
   useEffect(() => {
-    // Set initial render to false after mount
     const timer = setTimeout(() => setIsInitialRender(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
-    
     if (filter === 'All') {
       setFilteredCards(gameCards);
     } else if (filter === 'Trending') {
@@ -94,32 +36,18 @@ const Cards = () => {
     }
   };
 
-  // Enhanced animation variants
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.3
-      }
+      transition: { staggerChildren: 0.08, delayChildren: 0.3 }
     },
-    exit: {
-      opacity: 0,
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1
-      }
-    }
+    exit: { opacity: 0, transition: { staggerChildren: 0.05, staggerDirection: -1 } }
   };
 
   const cardVariants = {
-    hidden: { 
-      y: 50, 
-      opacity: 0, 
-      scale: 0.9,
-      rotateX: 15
-    },
+    hidden: { y: 50, opacity: 0, scale: 0.9, rotateX: 15 },
     visible: (i) => ({
       y: 0,
       opacity: 1,
@@ -132,23 +60,13 @@ const Cards = () => {
         delay: isInitialRender ? i * 0.1 : 0
       }
     }),
-    exit: { 
-      y: -30, 
-      opacity: 0,
-      scale: 0.9,
-      transition: { 
-        duration: 0.2 
-      }
-    },
+    exit: { y: -30, opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
     hover: {
       y: -15,
-      scale: 1.03,
-      boxShadow: "0 25px 25px -5px rgba(99, 102, 241, 0.3)",
-      transition: { 
-        duration: 0.3,
-        type: "spring",
-        stiffness: 300
-      }
+      scale: 1.05,
+      boxShadow: "0 25px 30px -10px rgba(99, 102, 241, 0.5)",
+      borderColor: "rgba(99, 102, 241, 0.7)",
+      transition: { duration: 0.3, type: "spring", stiffness: 300 }
     }
   };
 
@@ -157,12 +75,7 @@ const Cards = () => {
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 24,
-        delay: 0.1
-      }
+      transition: { type: "spring", stiffness: 300, damping: 24, delay: 0.1 }
     }
   };
 
@@ -171,12 +84,7 @@ const Cards = () => {
     visible: { 
       width: "6rem", 
       opacity: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 500, 
-        damping: 30,
-        delay: 0.4 
-      }
+      transition: { type: "spring", stiffness: 500, damping: 30, delay: 0.4 }
     }
   };
 
@@ -188,44 +96,28 @@ const Cards = () => {
     },
     active: { 
       scale: 1.05, 
-      backgroundColor: "rgb(79, 70, 229)",
-      boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
-      transition: {
-        type: "spring",
-        stiffness: 500,
-        damping: 15
-      }
+      backgroundColor: "rgb(99, 102, 241)",
+      boxShadow: "0 4px 12px rgba(99, 102, 241, 0.5)",
+      transition: { type: "spring", stiffness: 500, damping: 15 }
     },
     hover: { 
       scale: 1.03, 
-      boxShadow: "0 4px 8px rgba(79, 70, 229, 0.2)",
+      boxShadow: "0 4px 8px rgba(99, 102, 241, 0.3)",
       transition: { duration: 0.2 } 
     },
-    tap: {
-      scale: 0.95
-    }
+    tap: { scale: 0.95 }
   };
 
   const buttonVariants = {
-    rest: { 
-      scale: 1, 
-      background: "linear-gradient(to right, rgb(79, 70, 229), rgb(99, 102, 241))"
-    },
+    rest: { scale: 1, background: "linear-gradient(to right, rgb(99, 102, 241), rgb(168, 85, 247))" },
     hover: { 
       scale: 1.05,
-      background: "linear-gradient(to right, rgb(67, 56, 202), rgb(79, 70, 229))",
-      boxShadow: "0 10px 15px -3px rgba(79, 70, 229, 0.3)",
+      background: "linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234))",
+      boxShadow: "0 10px 15px -3px rgba(99, 102, 241, 0.5)",
       y: -2,
-      transition: {
-        duration: 0.2,
-        ease: "easeOut"
-      }
+      transition: { duration: 0.2, ease: "easeOut" }
     },
-    tap: {
-      scale: 0.98,
-      boxShadow: "0 5px 10px -3px rgba(79, 70, 229, 0.3)",
-      y: 0
-    }
+    tap: { scale: 0.98, boxShadow: "0 5px 10px -3px rgba(99, 102, 241, 0.3)", y: 0 }
   };
 
   const badgeVariants = {
@@ -234,38 +126,47 @@ const Cards = () => {
       scale: 1, 
       opacity: 1, 
       rotate: 0,
-      transition: {
-        type: "spring",
-        stiffness: 500,
-        damping: 15,
-        delay: 0.2
-      }
+      transition: { type: "spring", stiffness: 500, damping: 15, delay: 0.2 }
+    },
+    hover: { 
+      scale: 1.1, 
+      boxShadow: "0 0 10px rgba(255, 255, 255, 0.5)",
+      transition: { duration: 0.2 }
     }
   };
 
   const fadeInVariants = {
     hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { duration: 0.5, delay: 0.3 }
-    }
+    visible: { opacity: 1, transition: { duration: 0.5, delay: 0.3 } }
   };
 
   return (
-    <div className="pb-16">
-      {/* Category Title with Enhanced Animation */}
+    <div className="pb-16 relative">
+      {/* Background Glow Effect */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2), transparent 70%)",
+          opacity: 0.3,
+        }}
+        animate={{ opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
+      />
+
+      {/* Category Title */}
       <div className="mb-10 relative">
         <motion.h2 
-          className="text-3xl font-bold text-center text-white mb-3"
+          className="text-4xl font-extrabold text-center bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent"
           variants={titleVariants}
           initial="hidden"
           animate="visible"
+          style={{ textShadow: "0 0 15px rgba(99, 102, 241, 0.5)" }}
         >
           Popular Categories
         </motion.h2>
         <div className="flex justify-center">
           <motion.div 
-            className="h-1 bg-indigo-600 rounded-full"
+            className="h-1 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-full"
             variants={underlineVariants}
             initial="hidden"
             animate="visible"
@@ -273,7 +174,7 @@ const Cards = () => {
         </div>
       </div>
 
-      {/* Filter Buttons with Enhanced Animation */}
+      {/* Filter Buttons */}
       <motion.div 
         className="flex flex-wrap justify-center gap-3 mb-12"
         variants={fadeInVariants}
@@ -284,23 +185,26 @@ const Cards = () => {
           <motion.button
             key={filter}
             onClick={() => handleFilterChange(filter)}
-            className={`px-4 py-2 rounded-full font-medium text-white`}
+            className={`px-4 py-2 rounded-full font-medium text-white border border-[#6366f1]/30 shadow-lg`}
             variants={filterButtonVariants}
             initial="inactive"
             animate={activeFilter === filter ? "active" : "inactive"}
             whileHover="hover"
             whileTap="tap"
+            style={{
+              textShadow: activeFilter === filter ? "0 0 10px rgba(99, 102, 241, 0.5)" : "none"
+            }}
           >
             {filter}
           </motion.button>
         ))}
       </motion.div>
 
-      {/* Enhanced Cards Grid with AnimatePresence for smooth transitions */}
+      {/* Cards Grid */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeFilter}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -310,14 +214,27 @@ const Cards = () => {
             <motion.div
               custom={index}
               key={card.id}
-              className="bg-gray-800 rounded-xl overflow-hidden shadow-lg"
+              className="bg-gray-900/80 rounded-xl overflow-hidden shadow-lg border border-[#6366f1]/20 relative"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
               whileHover="hover"
             >
-              {/* Card Image with Parallax Effect */}
+              {/* Glowing Border Effect */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                animate={{ 
+                  boxShadow: [
+                    "0 0 20px rgba(99, 102, 241, 0.2)",
+                    "0 0 30px rgba(168, 85, 247, 0.3)",
+                    "0 0 20px rgba(99, 102, 241, 0.2)"
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+              />
+
+              {/* Card Image */}
               <motion.div 
                 className="relative overflow-hidden h-48"
                 whileHover={{ scale: 1.1, transition: { duration: 0.5 } }}
@@ -329,30 +246,34 @@ const Cards = () => {
                   whileHover={{ scale: 1.1, transition: { duration: 1.5 } }}
                 />
                 
-                {/* Enhanced Badge Animation */}
+                {/* Badges */}
                 {card.discount && (
                   <motion.div 
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full"
+                    className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs font-bold px-3 py-1 rounded-full"
                     variants={badgeVariants}
                     initial="initial"
                     animate="animate"
+                    whileHover="hover"
+                    style={{ boxShadow: "0 0 10px rgba(239, 68, 68, 0.5)" }}
                   >
                     {card.discount}
                   </motion.div>
                 )}
                 {card.trending && !card.discount && (
                   <motion.div 
-                    className="absolute top-2 right-2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full"
+                    className="absolute top-2 right-2 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white text-xs font-bold px-3 py-1 rounded-full"
                     variants={badgeVariants}
                     initial="initial"
                     animate="animate"
+                    whileHover="hover"
+                    style={{ boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)" }}
                   >
                     TRENDING
                   </motion.div>
                 )}
               </motion.div>
               
-              {/* Card Content with Staggered Children */}
+              {/* Card Content */}
               <div className="p-5">
                 <motion.div 
                   className="text-xs text-gray-400 mb-2"
@@ -387,6 +308,7 @@ const Cards = () => {
                   initial="rest"
                   whileHover="hover"
                   whileTap="tap"
+                  style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
                 >
                   Buy Now
                 </motion.button>
@@ -396,7 +318,7 @@ const Cards = () => {
         </motion.div>
       </AnimatePresence>
 
-      {/* No results message with animation */}
+      {/* No Results Message */}
       {filteredCards.length === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
