@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Search, User, Bell, Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+=======
+import { useNavigate } from 'react-router-dom';
+>>>>>>> dd18115 (auth page)
 
 const Navbar = () => {
     const isLoggedIn = false; // Replace with actual authentication check
@@ -10,7 +14,11 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const { scrollY } = useScroll();
     const [cartCount, setCartCount] = useState(3); // Example cart count
+<<<<<<< HEAD
     const navigate = useNavigate(); // Hook for navigation
+=======
+    const navigate = useNavigate(); // Use the useNavigate hook
+>>>>>>> dd18115 (auth page)
 
     // Transform properties based on scroll
     const navbarBackground = useTransform(
@@ -317,6 +325,7 @@ const Navbar = () => {
                                     whileHover="hover"
                                     whileTap="tap"
                                     className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-full hover:bg-indigo-700 transition-colors duration-300 flex items-center space-x-2"
+                                    onClick={() => navigate('/login')} // Navigate to login page
                                 >
                                     <User size={16} />
                                     <span>Login</span>
