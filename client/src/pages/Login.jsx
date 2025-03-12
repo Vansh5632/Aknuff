@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const API_URL = "http://localhost:3000/api"
+
+    // Cleanup on component unmount
+    useEffect(() => {
+        return () => {
+            setIsLoading(false);
+        };
+    }, []);
 
     // Animation variants
     const containerVariants = {
@@ -47,27 +57,58 @@ const Login = () => {
         tap: { scale: 0.95 }
     };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
+    // Form submission handler
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Basic input validation
+        if (!email || !password) {
+            toast.error('Please fill in all fields');
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+        
+        try {
+            const response = await axios.post(`${API_URL}/auth/login`, { 
+                email, 
+                password 
+            });
+            
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            
+            toast.success('Successfully logged in!');
+            navigate('/');
+        } catch (error) {
+            if (error.response?.status === 401) {
+                toast.error('Invalid credentials');
+            } else if (error.response?.status === 500) {
+                toast.error('Server error, please try again later');
+            } else {
+                toast.error(error.response?.data?.message || 'Login failed');
+            }
+            console.error('Login error:', error);
+        } finally {
             setIsLoading(false);
-            console.log("Login attempt with:", { email, password });
-            navigate('/'); // Redirect to homepage after login
-        }, 2000);
+        }
     };
 
-    // Handle Google Sign-In
-    const handleGoogleSignIn = () => {
+    // Google Sign-In handler
+    const handleGoogleSignIn = async () => {
         setIsLoading(true);
-        // Simulate Google Sign-In API call
-        setTimeout(() => {
+        try {
+            window.location.href = `${import.meta.env.VITE_API_URL || ''}/api/auth/google`;
+        } catch (error) {
+            console.error('Google sign-in error:', error);
+            toast.error('Google sign-in failed. Please try again.');
             setIsLoading(false);
-            console.log("Signed in with Google");
-            navigate('/');
-        }, 2000);
+        }
     };
 
     return (
@@ -136,7 +177,6 @@ const Login = () => {
                     onSubmit={handleSubmit}
                     className="space-y-6"
                 >
-                    {/* Email Input */}
                     <motion.div variants={inputVariants}>
                         <label htmlFor="email" className="block text-gray-300 mb-2">
                             Email
@@ -151,14 +191,14 @@ const Login = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 placeholder="Enter your email"
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all"
+                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all disabled:opacity-50"
                                 whileFocus="focus"
                             />
                         </div>
                     </motion.div>
 
-                    {/* Password Input */}
                     <motion.div variants={inputVariants}>
                         <label htmlFor="password" className="block text-gray-300 mb-2">
                             Password
@@ -173,21 +213,21 @@ const Login = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                disabled={isLoading}
                                 placeholder="Enter your password"
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all"
+                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all disabled:opacity-50"
                                 whileFocus="focus"
                             />
                         </div>
                     </motion.div>
 
-                    {/* Submit Button */}
                     <motion.button
                         type="submit"
                         disabled={isLoading}
                         variants={buttonVariants}
-                        whileHover="hover"
-                        whileTap="tap"
-                        className="w-full bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2"
+                        whileHover={!isLoading ? "hover" : ""}
+                        whileTap={!isLoading ? "tap" : ""}
+                        className="w-full bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50"
                         style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
                     >
                         {isLoading ? (
@@ -216,9 +256,9 @@ const Login = () => {
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
                     variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="w-full bg-gray-800 border border-[#6366f1]/30 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2"
+                    whileHover={!isLoading ? "hover" : ""}
+                    whileTap={!isLoading ? "tap" : ""}
+                    className="w-full bg-gray-800 border border-[#6366f1]/30 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50"
                     style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
                 >
                     {isLoading ? (
