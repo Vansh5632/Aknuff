@@ -10,7 +10,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const API_URL = "http://localhost:3000/api"
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
     // Cleanup on component unmount
     useEffect(() => {
