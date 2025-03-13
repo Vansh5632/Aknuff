@@ -1,19 +1,20 @@
+// client/src/pages/Register.jsx
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const Register = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  const { signup } = useAuth();
 
-  // Animation variants remain unchanged
-
+  // Animation variants (unchanged)
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -51,49 +52,46 @@ const Register = () => {
     tap: { scale: 0.95 },
   };
 
-  // Updated to make actual API call
+  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic input validation
+    if (!name || !email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     setIsLoading(true);
-    setError("");
-
     try {
-      const response = await axios.post(`${API_URL}/auth/signup`, {
-        email,
-        password,
-      });
-
-      // Registration successful
-      console.log("Registration successful:", response.data);
-      navigate("/login"); // Redirect to login page after successful registration
-    } catch (err) {
-      console.error("Registration error:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to register. Please try again."
-      );
+      await signup(name, email, password);
+    } catch (error) {
+      if (error.response?.status === 400) {
+        toast.error("User already exists");
+      } else if (error.response?.status === 500) {
+        toast.error("Server error, please try again later");
+      } else {
+        toast.error(error.response?.data?.message || "Registration failed");
+      }
+      console.error("Registration error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Updated to make actual API call
+  // Google Sign-In handler (unchanged for now)
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    setError("");
-
     try {
-      // In a real implementation, this would typically redirect to Google OAuth
-      window.location.href = `${API_URL}/auth/google`;
-
-      // Note: The redirection will stop the execution here,
-      // the code below won't run until the OAuth flow returns
-    } catch (err) {
-      console.error("Google Sign-In error:", err);
-      setError(
-        err.message || "Failed to sign in with Google. Please try again."
-      );
+      window.location.href = `${import.meta.env.VITE_API_URL || "http://localhost:3000/api"}/auth/google`;
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+      toast.error("Google sign-in failed. Please try again.");
       setIsLoading(false);
     }
   };
@@ -105,21 +103,42 @@ const Register = () => {
         background: "linear-gradient(180deg, #0f172a 0%, #050417 100%)",
       }}
     >
-      {/* Background Effects - unchanged */}
+      {/* Background Effects (unchanged) */}
       <div className="absolute inset-0 opacity-10 pointer-events-none">
-        {/* Background code remains the same */}
         <motion.div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "radial-gradient(circle, #6366f1 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, #6366f1 1px, transparent 1px)",
             backgroundSize: "30px 30px",
           }}
           animate={{ opacity: [0.1, 0.3, 0.1] }}
           transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
         />
-        {/* Hexagons remain unchanged */}
-        {/* ... */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={`hex-register-${i}`}
+            className="absolute"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: `${20 + Math.random() * 30}px`,
+              height: `${20 + Math.random() * 30}px`,
+              opacity: 0.1 + Math.random() * 0.2,
+              background: i % 2 === 0 ? "#6366f1" : "#a855f7",
+              clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+            }}
+            animate={{
+              opacity: [0.1 + Math.random() * 0.2, 0.3 + Math.random() * 0.2, 0.1 + Math.random() * 0.2],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut",
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
       </div>
 
       {/* Register Form */}
@@ -136,17 +155,6 @@ const Register = () => {
           Join Aknuff
         </motion.h2>
 
-        {/* Display error message if any */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-4 p-2 text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-md"
-          >
-            {error}
-          </motion.div>
-        )}
-
         <motion.form
           variants={formVariants}
           initial="hidden"
@@ -154,7 +162,29 @@ const Register = () => {
           onSubmit={handleSubmit}
           className="space-y-6"
         >
-          {/* Form inputs remain unchanged */}
+          {/* Name Input */}
+          <motion.div variants={inputVariants}>
+            <label htmlFor="name" className="block text-gray-300 mb-2">
+              Name
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <User className="h-5 w-5 text-[#6366f1]" />
+              </span>
+              <motion.input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder="Enter your name"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all disabled:opacity-50"
+                whileFocus="focus"
+              />
+            </div>
+          </motion.div>
+
           {/* Email Input */}
           <motion.div variants={inputVariants}>
             <label htmlFor="email" className="block text-gray-300 mb-2">
@@ -170,8 +200,9 @@ const Register = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
                 placeholder="Enter your email"
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all disabled:opacity-50"
                 whileFocus="focus"
               />
             </div>
@@ -192,8 +223,9 @@ const Register = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-[#6366f1]/30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#a855f7] transition-all disabled:opacity-50"
                 whileFocus="focus"
               />
             </div>
@@ -204,9 +236,9 @@ const Register = () => {
             type="submit"
             disabled={isLoading}
             variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-            className="w-full bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2"
+            whileHover={!isLoading ? "hover" : ""}
+            whileTap={!isLoading ? "tap" : ""}
+            className="w-full bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50"
             style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
           >
             {isLoading ? (
@@ -220,16 +252,13 @@ const Register = () => {
           </motion.button>
         </motion.form>
 
-        {/* The rest of the component remains unchanged */}
         {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[#6366f1]/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-gray-900/80 px-2 text-gray-400">
-              Or continue with
-            </span>
+            <span className="bg-gray-900/80 px-2 text-gray-400">Or continue with</span>
           </div>
         </div>
 
@@ -238,9 +267,9 @@ const Register = () => {
           onClick={handleGoogleSignIn}
           disabled={isLoading}
           variants={buttonVariants}
-          whileHover="hover"
-          whileTap="tap"
-          className="w-full bg-gray-800 border border-[#6366f1]/30 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2"
+          whileHover={!isLoading ? "hover" : ""}
+          whileTap={!isLoading ? "tap" : ""}
+          className="w-full bg-gray-800 border border-[#6366f1]/30 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50"
           style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
         >
           {isLoading ? (
@@ -280,8 +309,7 @@ const Register = () => {
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            "linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))",
+          background: "linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))",
           opacity: 0.3,
         }}
         animate={{ opacity: [0.2, 0.4, 0.2] }}
