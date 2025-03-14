@@ -1,9 +1,7 @@
-// server/server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
-const path = require('path');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 require('dotenv').config();
@@ -12,11 +10,8 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ origin: '*', credentials: true })); // Keeping '*' as requested
 app.use(passport.initialize());
-
-// Serve static files from the React app (client/build folder) only for non-API routes
-app.use(express.static(path.join(__dirname, '../client/dist'))); // Adjust path to client build directory
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -40,7 +35,7 @@ async (accessToken, refreshToken, profile, done) => {
       user = new User({
         name: profile.displayName,
         email: profile.emails[0].value,
-        password: 'google-auth-' + Math.random().toString(36).slice(-8), // Dummy password
+        password: 'google-auth-' + Math.random().toString(36).slice(-8),
       });
       await user.save();
     }
@@ -57,12 +52,9 @@ passport.deserializeUser((userObj, done) => done(null, userObj));
 // Routes
 app.use('/api/auth', authRoutes);
 
-// Serve React app only for root route (optional, adjust as needed)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-});
+// Health check
+app.get('/', (req, res) => res.send('API is running'));
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
