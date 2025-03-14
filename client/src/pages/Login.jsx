@@ -65,18 +65,24 @@ const Login = () => {
   const handleGoogleSuccess = async (response) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google/token`, {
+      const url = `${import.meta.env.VITE_API_URL}/api/auth/google/token`;
+      console.log("Fetching from:", url);
+      const res = await fetch(url, {  // Line 70
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential }),
+        credentials: "include",
       });
       const data = await res.json();
+      console.log("Full response object:", res);  // Line 75
+      console.log("Response data:", data);        // Line 77
       if (res.ok) {
         const { token, user } = data;
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
-        await login(user.email, "", true); // Call login with isGoogle=true
+        await login(user.email, null, true, token);
         toast.success("Successfully logged in with Google!");
+        navigate("/product");
       } else {
         toast.error(data.message || "Google login failed");
       }

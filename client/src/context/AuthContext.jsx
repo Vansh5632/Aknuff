@@ -1,4 +1,3 @@
-// client/src/context/AuthContext.jsx
 import { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -16,10 +15,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const googleToken = urlParams.get('token');
-    const googleUser = urlParams.get('user');
+    const googleToken = urlParams.get("token");
+    const googleUser = urlParams.get("user");
 
     if (googleToken && googleUser) {
+      // Handle server-side Google OAuth redirect
       const parsedUser = JSON.parse(decodeURIComponent(googleUser));
       setToken(googleToken);
       setUser(parsedUser);
@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Successfully logged in with Google!");
       navigate("/product", { replace: true });
     } else {
+      // Load stored auth data
       const storedToken = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
       if (storedToken && storedUser) {
@@ -40,22 +41,21 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, [location, navigate]);
 
-  const login = async (email, password, isGoogle = false) => {
+  const login = async (email, password, isGoogle = false, googleToken = null) => {
     try {
       let response;
-      if (isGoogle) {
-        // For Google, use the existing token and user from localStorage or response
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        if (storedToken && storedUser) {
-          response = { data: { user: JSON.parse(storedUser), token: storedToken } };
-        } else {
-          throw new Error("No Google authentication data found");
-        }
-      } else {
-        // Normal login with email and password
+      if (isGoogle && googleToken) {
+        // Google client-side login: Use provided token
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (!storedUser) throw new Error("No Google user data found");
+        response = { data: { user: storedUser, token: googleToken } };
+      } else if (!isGoogle) {
+        // Traditional login with email and password
         response = await axios.post(`${API_URL}/auth/login`, { email, password });
+      } else {
+        throw new Error("Invalid login parameters for Google authentication");
       }
+
       const { user, token } = response.data;
       setUser(user);
       setToken(token);
@@ -65,7 +65,9 @@ export const AuthProvider = ({ children }) => {
       toast.success(`Successfully logged in${isGoogle ? " with Google" : ""}!`);
       navigate("/product");
     } catch (error) {
-      throw error;
+      const message = error.response?.data?.message || error.message || "Login failed";
+      toast.error(message);
+      throw error; // Let the caller handle further if needed
     }
   };
 
@@ -73,18 +75,16 @@ export const AuthProvider = ({ children }) => {
     try {
       let response;
       if (isGoogle) {
-        // For Google, use the existing token and user from localStorage or response
+        // Google signup: Use existing token and user from localStorage
         const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        if (storedToken && storedUser) {
-          response = { data: { user: JSON.parse(storedUser), token: storedToken } };
-        } else {
-          throw new Error("No Google authentication data found");
-        }
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (!storedToken || !storedUser) throw new Error("No Google authentication data found");
+        response = { data: { user: storedUser, token: storedToken } };
       } else {
-        // Normal signup with name, email, and password
+        // Traditional signup with name, email, and password
         response = await axios.post(`${API_URL}/auth/signup`, { name, email, password });
       }
+
       const { user, token } = response.data;
       setUser(user);
       setToken(token);
@@ -94,6 +94,8 @@ export const AuthProvider = ({ children }) => {
       toast.success(`Successfully registered${isGoogle ? " with Google" : ""}!`);
       navigate("/product");
     } catch (error) {
+      const message = error.response?.data?.message || error.message || "Signup failed";
+      toast.error(message);
       throw error;
     }
   };
