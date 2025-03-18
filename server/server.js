@@ -100,6 +100,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
+if(process.env.NODE_ENV === 'production') {
+  app.use(express.static(this.path.join(__dirname, 'client/dist')));
+  app.get('*', (req, res)=> {
+    res.sendFile(this.path.join(__dirname, 'client/dist/index.html'));
+  })
+}
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
