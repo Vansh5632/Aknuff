@@ -11,7 +11,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true })); // Avoid '*' in production
+app.use(cors({ origin: '*', credentials: true })); // Avoid '*' in production
 app.use(passport.initialize());
 
 // MongoDB Connection
