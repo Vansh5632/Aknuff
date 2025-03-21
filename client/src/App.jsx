@@ -2,12 +2,12 @@
 import { Route, Routes } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Home from "./pages/Home";
-import Product from "./pages/Product";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProductPage from "./pages/ProductListing";
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
             path="/product"
             element={
               <ProtectedRoute>
-                <Product />
+                <ProductPage/>
               </ProtectedRoute>
             }
           />
