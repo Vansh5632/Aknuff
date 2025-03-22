@@ -82,7 +82,7 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(user));
         await login(user.email, null, true, token);
         toast.success("Successfully logged in with Google!");
-        navigate("/product");
+        navigate("/products");
       } else {
         toast.error(data.message || "Google login failed");
       }

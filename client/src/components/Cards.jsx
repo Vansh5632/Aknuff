@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 // Mock data for game cards
-const gameCards = [
+export const gameCards = [
   { id: 1, title: 'Mobile Legends', image: 'https://images7.alphacoders.com/116/1167752.jpg', price: 'From $1.99', category: 'Mobile Games', discount: '15% OFF' },
   { id: 2, title: 'Steam Wallet', image: 'https://www.lifewire.com/thmb/LjRtKhZ1C3ZBs0zPRY96Ip2Sx8g=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/005-c6f34c70111143d89ee02ea246e81a1b.jpg', price: 'From $5.00', category: 'PC Games', discount: '10% OFF' },
   { id: 3, title: 'PUBG Mobile', image: 'https://m.media-amazon.com/images/I/81bRacT8elL._AC_UF1000,1000_QL80_.jpg', price: 'From $2.99', category: 'Mobile Games', trending: true },
@@ -221,98 +222,100 @@ const Cards = () => {
               exit="exit"
               whileHover="hover"
             >
-              {/* Glowing Border Effect */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                animate={{ 
-                  boxShadow: [
-                    "0 0 20px rgba(99, 102, 241, 0.2)",
-                    "0 0 30px rgba(168, 85, 247, 0.3)",
-                    "0 0 20px rgba(99, 102, 241, 0.2)"
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
-              />
-
-              {/* Card Image */}
-              <motion.div 
-                className="relative overflow-hidden h-48"
-                whileHover={{ scale: 1.1, transition: { duration: 0.5 } }}
-              >
-                <motion.img 
-                  src={card.image} 
-                  alt={card.title} 
-                  className="w-full h-48 object-cover"
-                  whileHover={{ scale: 1.1, transition: { duration: 1.5 } }}
+              <Link to={`/product/${card.id}`}>
+                {/* Glowing Border Effect */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 20px rgba(99, 102, 241, 0.2)",
+                      "0 0 30px rgba(168, 85, 247, 0.3)",
+                      "0 0 20px rgba(99, 102, 241, 0.2)"
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
                 />
-                
-                {/* Badges */}
-                {card.discount && (
-                  <motion.div 
-                    className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs font-bold px-3 py-1 rounded-full"
-                    variants={badgeVariants}
-                    initial="initial"
-                    animate="animate"
-                    whileHover="hover"
-                    style={{ boxShadow: "0 0 10px rgba(239, 68, 68, 0.5)" }}
-                  >
-                    {card.discount}
-                  </motion.div>
-                )}
-                {card.trending && !card.discount && (
-                  <motion.div 
-                    className="absolute top-2 right-2 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white text-xs font-bold px-3 py-1 rounded-full"
-                    variants={badgeVariants}
-                    initial="initial"
-                    animate="animate"
-                    whileHover="hover"
-                    style={{ boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)" }}
-                  >
-                    TRENDING
-                  </motion.div>
-                )}
-              </motion.div>
-              
-              {/* Card Content */}
-              <div className="p-5">
+
+                {/* Card Image */}
                 <motion.div 
-                  className="text-xs text-gray-400 mb-2"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
+                  className="relative overflow-hidden h-48"
+                  whileHover={{ scale: 1.1, transition: { duration: 0.5 } }}
                 >
-                  {card.category}
+                  <motion.img 
+                    src={card.image} 
+                    alt={card.title} 
+                    className="w-full h-48 object-cover"
+                    whileHover={{ scale: 1.1, transition: { duration: 1.5 } }}
+                  />
+                  
+                  {/* Badges */}
+                  {card.discount && (
+                    <motion.div 
+                      className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-red-700 text-white text-xs font-bold px-3 py-1 rounded-full"
+                      variants={badgeVariants}
+                      initial="initial"
+                      animate="animate"
+                      whileHover="hover"
+                      style={{ boxShadow: "0 0 10px rgba(239, 68, 68, 0.5)" }}
+                    >
+                      {card.discount}
+                    </motion.div>
+                  )}
+                  {card.trending && !card.discount && (
+                    <motion.div 
+                      className="absolute top-2 right-2 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white text-xs font-bold px-3 py-1 rounded-full"
+                      variants={badgeVariants}
+                      initial="initial"
+                      animate="animate"
+                      whileHover="hover"
+                      style={{ boxShadow: "0 0 10px rgba(99, 102, 241, 0.5)" }}
+                    >
+                      TRENDING
+                    </motion.div>
+                  )}
                 </motion.div>
                 
-                <motion.h3 
-                  className="font-bold text-lg mb-2 text-white"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  {card.title}
-                </motion.h3>
-                
-                <motion.div 
-                  className="text-indigo-400 font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  {card.price}
-                </motion.div>
-                
-                <motion.button
-                  className="w-full text-white font-bold py-2 px-4 rounded-lg mt-5"
-                  variants={buttonVariants}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                  style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
-                >
-                  Buy Now
-                </motion.button>
-              </div>
+                {/* Card Content */}
+                <div className="p-5">
+                  <motion.div 
+                    className="text-xs text-gray-400 mb-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {card.category}
+                  </motion.div>
+                  
+                  <motion.h3 
+                    className="font-bold text-lg mb-2 text-white"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {card.title}
+                  </motion.h3>
+                  
+                  <motion.div 
+                    className="text-indigo-400 font-medium"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    {card.price}
+                  </motion.div>
+                  
+                  <motion.button
+                    className="w-full text-white font-bold py-2 px-4 rounded-lg mt-5"
+                    variants={buttonVariants}
+                    initial="rest"
+                    whileHover="hover"
+                    whileTap="tap"
+                    style={{ boxShadow: "0 0 15px rgba(99, 102, 241, 0.3)" }}
+                  >
+                    Buy Now
+                  </motion.button>
+                </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

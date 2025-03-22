@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(parsedUser));
       axios.defaults.headers.common["Authorization"] = `Bearer ${googleToken}`;
       toast.success("Successfully logged in with Google!");
-      navigate("/product", { replace: true });
+      navigate("/products", { replace: true });
     } else {
       // Load stored auth data
       const storedToken = localStorage.getItem("token");
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(user));
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       toast.success(`Successfully logged in${isGoogle ? " with Google" : ""}!`);
-      navigate("/product");
+      navigate("/products");
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Login failed";
       toast.error(message);
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(user));
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       toast.success(`Successfully registered${isGoogle ? " with Google" : ""}!`);
-      navigate("/product");
+      navigate("/products");
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Signup failed";
       toast.error(message);

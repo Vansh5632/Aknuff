@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductPage from "./pages/ProductListing";
+import ProductDetail from "./pages/ProductDetail";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route
-            path="/product"
+            path="/products"
             element={
               <ProtectedRoute>
                 <ProductPage/>
@@ -40,6 +41,10 @@ function App() {
                 <Profile />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/product/:productId"
+            element={<ProductDetail/>}
           />
         </Routes>
       </AnimatePresence>
