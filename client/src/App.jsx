@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ProductPage from "./pages/ProductListing";
 import ProductDetail from "./pages/ProductDetail";
 import Chat from "./pages/Chat";
+import ProductSelling from "./pages/ProductSelling";
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
             path="/products"
             element={
               <ProtectedRoute>
-                <ProductPage/>
+                <ProductPage />
               </ProtectedRoute>
             }
           />
@@ -43,12 +44,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/product/:productId"
-            element={<ProductDetail/>}
-          />
-          <Route path="/chat/:sellerId"
-          element={<Chat/>}/>
+          <Route path="/product/:productId" element={<ProductDetail />} />
+          <Route path="/chat/:sellerId" element={<Chat />} />
+          <Route path="/product-selling" element={<ProductSelling/>}/>
         </Routes>
       </AnimatePresence>
     </div>
