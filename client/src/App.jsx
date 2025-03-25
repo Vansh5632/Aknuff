@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductPage from "./pages/ProductListing";
 import ProductDetail from "./pages/ProductDetail";
+import Chat from "./pages/Chat";
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
             path="/product/:productId"
             element={<ProductDetail/>}
           />
+          <Route path="/chat/:sellerId"
+          element={<Chat/>}/>
         </Routes>
       </AnimatePresence>
     </div>

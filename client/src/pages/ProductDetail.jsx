@@ -1,6 +1,6 @@
 // ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // Move useNavigate here
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import { gameCards } from '../components/Cards'; // Import shared gameCards data
 
 const ProductDetail = () => {
   const { productId } = useParams();
+  const navigate = useNavigate(); // Use hook at the top level
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -43,6 +44,11 @@ const ProductDetail = () => {
         quantity,
       });
     }
+  };
+
+  const handleChatWithSeller = () => {
+    const sellerId = product.sellerId || 'default';  
+    navigate(`/chat/${sellerId}`);
   };
 
   if (loading) {
@@ -113,7 +119,7 @@ const ProductDetail = () => {
           <div className="bg-gray-900/80 rounded-xl shadow-lg border border-[#6366f1]/20 overflow-hidden">
             <div className="md:flex">
               {/* Product Image */}
-              <div className="md:w-1/2 p-6">
+              <div className="md:w-1/2 p-6"></div>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
@@ -195,10 +201,20 @@ const ProductDetail = () => {
                     <p className="text-center">Please log in to add items to your cart</p>
                   </div>
                 )}
+
+                <div className="mt-6">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleChatWithSeller}
+                    className="px-6 py-2 bg-green-600 rounded-lg font-medium hover:bg-green-700 transition-colors w-full"
+                  >
+                    Chat with Seller
+                  </motion.button>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+      </motion.div>
       </div>
     </div>
   );
