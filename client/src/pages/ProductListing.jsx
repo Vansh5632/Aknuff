@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Cards from '../components/Cards';
 import CartSummary from '../components/CartSummary';
 import Navbar from '../components/Navbar';
@@ -11,93 +12,14 @@ const ProductListing = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { cart } = useCart(); // Modified to only use what's needed
+  const { cart } = useCart();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Replace this with your testing data
         const testProducts = [
-          { 
-            id: 1, 
-            title: 'Gaming Headset Pro', 
-            price: 'From $100', 
-            description: 'Professional gaming headset with 7.1 surround sound',
-            image: 'https://placehold.co/300x200/6366f1/FFFFFF?text=Gaming+Headset',
-            category: 'Accessories'
-          },
-          { 
-            id: 2, 
-            title: 'RGB Mechanical Keyboard', 
-            price: 'From $200',
-            description: 'Mechanical gaming keyboard with customizable RGB lighting',
-            image: 'https://placehold.co/300x200/a855f7/FFFFFF?text=RGB+Keyboard',
-            category: 'Accessories'
-          },
-          { 
-            id: 3, 
-            title: 'Ultra Gaming Mouse', 
-            price: 'From $300',
-            description: 'High-precision gaming mouse with adjustable DPI',
-            image: 'https://placehold.co/300x200/6366f1/FFFFFF?text=Gaming+Mouse',
-            category: 'Accessories'
-          },
-          { 
-            id: 4, 
-            title: 'Gaming Chair', 
-            price: 'From $400',
-            description: 'Ergonomic gaming chair with lumbar support',
-            image: 'https://placehold.co/300x200/a855f7/FFFFFF?text=Gaming+Chair',
-            category: 'Furniture'
-          },
-          { 
-            id: 5, 
-            title: '4K Gaming Monitor', 
-            price: 'From $500',
-            description: '27-inch 4K gaming monitor with 144Hz refresh rate',
-            image: 'https://placehold.co/300x200/6366f1/FFFFFF?text=Gaming+Monitor',
-            category: 'Monitors'
-          },
-          { 
-            id: 6, 
-            title: 'Gaming Desk', 
-            price: 'From $600',
-            description: 'Spacious gaming desk with cable management',
-            image: 'https://placehold.co/300x200/a855f7/FFFFFF?text=Gaming+Desk',
-            category: 'Furniture'
-          },
-          { 
-            id: 7, 
-            title: 'VR Headset', 
-            price: 'From $700',
-            description: 'Immersive VR headset with motion tracking',
-            image: 'https://placehold.co/300x200/6366f1/FFFFFF?text=VR+Headset',
-            category: 'Accessories'
-          },
-          { 
-            id: 8, 
-            title: 'Gaming Laptop', 
-            price: 'From $800',
-            description: 'High-performance gaming laptop with RTX graphics',
-            image: 'https://placehold.co/300x200/a855f7/FFFFFF?text=Gaming+Laptop',
-            category: 'Laptops'
-          },
-          { 
-            id: 9, 
-            title: 'Gaming Console', 
-            price: 'From $900',
-            description: 'Next-gen gaming console with 4K support',
-            image: 'https://placehold.co/300x200/6366f1/FFFFFF?text=Gaming+Console',
-            category: 'Consoles'
-          },
-          { 
-            id: 10, 
-            title: 'Gaming Router', 
-            price: 'From $1000',
-            description: 'High-speed gaming router with low latency',
-            image: 'https://placehold.co/300x200/a855f7/FFFFFF?text=Gaming+Router',
-            category: 'Accessories'
-          },
+          // Test product data here...
         ];
         setProducts(testProducts);
         setLoading(false);
@@ -122,7 +44,7 @@ const ProductListing = () => {
 
   return (
     <div className="product-listing-page min-h-screen bg-[#0f172a] text-white relative overflow-hidden">
-      {/* Enhanced Background Effects for Gaming Vibe */}
+      {/* Background effects */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -164,7 +86,22 @@ const ProductListing = () => {
         >
           Gaming Marketplace
         </motion.h1>
-        
+
+        {/* Sell Your Product Button */}
+        <div className="mb-6">
+          <motion.button
+            onClick={() => navigate('/product-selling')} // Navigate to ProductSelling page
+            className="px-6 py-3 bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold rounded-lg shadow-lg"
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 15px rgba(99, 102, 241, 0.5)",
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            Sell Your Product
+          </motion.button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           <motion.div 
             className="flex-1"

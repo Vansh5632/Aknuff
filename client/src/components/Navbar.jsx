@@ -1,10 +1,9 @@
-// client/src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, User, Bell, Menu, X, ChevronDown, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Search, User, Bell, Menu, X, ChevronDown, MessageCircle, Package } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext'; // New context for cart and notifications
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -14,13 +13,13 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
-  const { cartCount, notificationCount, fetchCartData } = useCart(); // Fetch real data
+  const { cartCount, notificationCount, fetchCartData } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
-    fetchCartData(); // Fetch cart data on mount
+    fetchCartData();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [fetchCartData]);
 
@@ -36,6 +35,7 @@ const Navbar = () => {
   const userMenuVariants = { hidden: { opacity: 0, scale: 0.95, y: -10 }, visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } } };
 
   const handleLoginClick = () => navigate('/login');
+  const handleProductsClick = () => navigate('/products'); // New handler for products page
 
   return (
     <motion.div initial="hidden" animate="visible" variants={navbarVariants} className="sticky top-0 z-50 w-full">
@@ -106,6 +106,16 @@ const Navbar = () => {
                 )}
               </motion.a>
 
+              {/* New Products Button */}
+              <motion.a
+                href="/products"
+                variants={buttonHoverVariants}
+                className="relative text-white p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors duration-300"
+                onClick={(e) => { e.preventDefault(); handleProductsClick(); }}
+              >
+                <Package size={18} />
+              </motion.a>
+
               {isLoggedIn ? (
                 <>
                   <motion.a
@@ -132,8 +142,8 @@ const Navbar = () => {
                           animate="visible"
                           exit="hidden"
                           className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2"
-                          onMouseEnter={() => setIsUserMenuOpen(true)} // Keep open on hover
-                          onMouseLeave={() => setIsUserMenuOpen(false)} // Close on leave
+                          onMouseEnter={() => setIsUserMenuOpen(true)}
+                          onMouseLeave={() => setIsUserMenuOpen(false)}
                         >
                           <button
                             onClick={() => navigate('/profile')}
@@ -224,11 +234,12 @@ const Navbar = () => {
               <motion.div className="mb-6">
                 <h3 className="text-lg font-bold text-white mb-4">Account</h3>
                 <div className="space-y-3">
-                  {['Login', 'Register', 'My Orders', 'Wishlist', 'Settings'].map((item) => (
+                  {['Login', 'Register', 'My Orders', 'Wishlist', 'Products', 'Settings'].map((item) => (
                     <motion.a
                       key={item}
-                      href={`#${item.toLowerCase().replace(' ', '-')}`}
+                      href={item === 'Products' ? '/products' : `#${item.toLowerCase().replace(' ', '-')}`}
                       className="block text-gray-300 hover:text-indigo-400 py-2 border-b border-gray-800"
+                      onClick={item === 'Products' ? (e) => { e.preventDefault(); handleProductsClick(); } : undefined}
                     >
                       {item}
                     </motion.a>

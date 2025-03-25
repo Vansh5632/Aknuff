@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const WebSocket = require('ws');
 const http = require('http');
+const productRoutes = require('./routes/productRoutes');
 
 const app = express();
 
@@ -92,7 +93,7 @@ passport.deserializeUser((userObj, done) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/product',productRoutes);
 // Health Check
 app.get('/', (req, res) => res.send('API is running'));
 
