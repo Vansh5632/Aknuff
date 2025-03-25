@@ -6,6 +6,8 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const WebSocket = require('ws');
+const http = require('http');
 
 const app = express();
 
@@ -34,19 +36,18 @@ passport.use(
       console.log('Google OAuth profile:', profile);
       const User = require('./models/User');
       try {
-        let user = await User.findOne({ googleId: profile.id }); // Use googleId instead of email
+        let user = await User.findOne({ googleId: profile.id });
         if (!user) {
           console.log('User not found, creating new user');
           user = new User({
-            googleId: profile.id, // Unique Google ID
+            googleId: profile.id,
             name: profile.displayName,
             email: profile.emails[0].value,
-            password: null, // No password for Google users
+            password: null,
           });
           await user.save();
           console.log('New user created:', user);
         } else {
-          // Update user info if necessary
           user.name = profile.displayName;
           user.email = profile.emails[0].value;
           await user.save();
@@ -67,7 +68,7 @@ passport.use(
 
 // Serialize and Deserialize User
 passport.serializeUser((userObj, done) => {
-  done(null, { user: userObj.user, token: userObj.token }); // Pass user and token directly
+  done(null, { user: userObj.user, token: userObj.token });
 });
 
 passport.deserializeUser((userObj, done) => {
@@ -76,6 +77,7 @@ passport.deserializeUser((userObj, done) => {
       console.error('JWT verify error:', err);
       return done(err, null);
     }
+    const User = require('./models/User');
     User.findById(decoded.id)
       .then(user => {
         console.log('JWT verified, user fetched:', user);
@@ -100,16 +102,102 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
-/*if(process.env.NODE_ENV === 'production') {
-  app.use(express.static(this.path.join(__dirname, 'client/dist')));
-  app.get('*', (req, res)=> {
-    res.sendFile(this.path.join(__dirname, 'client/dist/index.html'));
-  })
-}*/
+// Create HTTP server and WebSocket server
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
+// Store connected clients with their user info
+const clients = new Map(); // Map<ws, { userId: string, googleId: string }>
+
+// WebSocket connection handling
+wss.on('connection', (ws, req) => {
+  console.log('New WebSocket connection established');
+
+  // Authenticate WebSocket connection using JWT
+  const token = new URLSearchParams(req.url.split('?')[1]).get('token');
+  if (!token) {
+    ws.send(JSON.stringify({ error: 'Authentication required' }));
+    ws.close();
+    return;
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      ws.send(JSON.stringify({ error: 'Invalid token' }));
+      ws.close();
+      return;
+    }
+
+    const User = require('./models/User');
+    try {
+      const user = await User.findById(decoded.id);
+      if (!user) {
+        ws.send(JSON.stringify({ error: 'User not found' }));
+        ws.close();
+        return;
+      }
+
+      // Store client info
+      clients.set(ws, { userId: user._id.toString(), googleId: user.googleId });
+      console.log(`Client authenticated: ${user.name} (${user.googleId})`);
+
+      // Send welcome message
+      ws.send(JSON.stringify({
+        type: 'welcome',
+        message: `Welcome, ${user.name}! Connected to WebSocket server`,
+      }));
+
+      // Handle incoming messages
+      ws.on('message', (message) => {
+        try {
+          const parsedMessage = JSON.parse(message);
+          console.log('Received message:', parsedMessage);
+
+          const clientInfo = clients.get(ws);
+
+          // Broadcast message to all connected clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'chat',
+                sender: {
+                  userId: clientInfo.userId,
+                  name: user.name,
+                  googleId: clientInfo.googleId,
+                },
+                message: parsedMessage.message,
+                timestamp: new Date().toISOString(),
+              }));
+            }
+          });
+        } catch (error) {
+          console.error('Error parsing message:', error);
+          ws.send(JSON.stringify({ error: 'Invalid message format' }));
+        }
+      });
+
+      // Handle disconnection
+      ws.on('close', () => {
+        clients.delete(ws);
+        console.log(`Client disconnected: ${user.name} (${user.googleId})`);
+      });
+
+      // Handle errors
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+      });
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      ws.close();
+    }
+  });
+});
+
+// Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`WebSocket server running on ws://localhost:${PORT}`);
 });
 
 module.exports = app;
