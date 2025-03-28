@@ -62,11 +62,15 @@ const Register = () => {
   const handleGoogleSuccess = async (response) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google/token`, {
+      console.log("Google response received:", response);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/google/token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential }),
       });
+      console.log("Fetch request sent to:", `${import.meta.env.VITE_API_URL}/auth/google/token`);
+      console.log("Request body:", { credential: response.credential });
+      console.log("Response status:", res.status);
       const data = await res.json();
       if (res.ok) {
         const { token, user } = data;

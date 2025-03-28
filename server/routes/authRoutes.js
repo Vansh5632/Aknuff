@@ -3,14 +3,14 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const passport = require('passport');
 const { OAuth2Client } = require('google-auth-library');
-require('dotenv').config();
-
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+require('dotenv').config();
 
 // Middleware to handle errors consistently
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// Existing signup and login routes
+// Existing routes
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
@@ -21,72 +21,102 @@ router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
-    const token = req.user.token; // Assuming token is attached in passport strategy
-    const user = req.user.user;   // Assuming user object is attached
+    const token = req.user.token;
+    const user = req.user.user;
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    
-    // Redirect to frontend with token and user data
     res.redirect(`${frontendUrl}/product?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`);
   }
 );
 
-// Google OAuth Client-Side Token Exchange (using Google ID token from frontend)
+// Google Token Verification Endpoint (for client-side auth)
 router.post('/google/token', asyncHandler(async (req, res) => {
-  const { credential } = req.body;
-
-  if (!credential) {
-    console.error('No credential provided');
-    return res.status(400).json({ message: 'No credential provided' });
+  const { token } = req.body; // Changed from 'credential' to 'token' for consistency
+  
+  if (!token) {
+    return res.status(400).json({ 
+      success: false,
+      message: 'No Google token provided' 
+    });
   }
 
   const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  
   try {
     // Verify the Google ID token
     const ticket = await client.verifyIdToken({
-      idToken: credential,
+      idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+    
     const payload = ticket.getPayload();
+    console.log('Google payload:', payload);
 
-    const email = payload.email;
-    const name = payload.name;
-    const googleId = payload.sub; // Unique Google ID
-
-    const User = require('../models/User');
-    let user = await User.findOne({ googleId });
+    // Find or create user
+    let user = await User.findOne({ googleId: payload.sub });
 
     if (!user) {
-      // Create new user if not found
       user = new User({
-        googleId,
-        email,
-        name,
-        password: null, // No password for Google-authenticated users
+        googleId: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        password: null,
       });
       await user.save();
+      console.log('New Google user created:', user);
     } else {
       // Update user info if needed
-      user.name = name;
-      user.email = email;
-      await user.save();
+      if (user.name !== payload.name || user.email !== payload.email) {
+        user.name = payload.name;
+        user.email = payload.email;
+        await user.save();
+        console.log('Google user updated:', user);
+      }
     }
 
-    // Generate JWT
-    const token = jwt.sign({ id: user._id, googleId: user.googleId }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+    // Generate JWT (consistent with your Passport implementation)
+    const jwtToken = jwt.sign(
+      { id: user._id, googleId: user.googleId },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // Set HTTP-only cookie
+    res.cookie('jwt', jwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 3600000 // 1 hour
     });
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    // Return response (consistent with your existing pattern)
+    res.json({
+      success: true,
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        googleId: user.googleId
+      }
+    });
+
   } catch (error) {
-    console.error('Error verifying Google token:', error);
-    res.status(401).json({ message: 'Invalid Google token', error: error.message });
+    console.error('Google token verification error:', error);
+    res.status(401).json({ 
+      success: false,
+      message: 'Invalid Google token',
+      error: error.message 
+    });
   }
 }));
 
 // Error handling middleware
 router.use((err, req, res, next) => {
   console.error('Route error:', err);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ 
+    success: false,
+    message: 'Internal server error' 
+  });
 });
 
 module.exports = router;

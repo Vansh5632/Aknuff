@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Cards from '../components/Cards';
 import CartSummary from '../components/CartSummary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { gameCards } from '../components/Cards';
 
 const MarketplaceBanner = () => {
   return (
@@ -17,24 +17,6 @@ const MarketplaceBanner = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, type: "spring", stiffness: 120 }}
     >
-      {/* Background Animated Dots */}
-      <motion.div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-        animate={{ 
-          backgroundPosition: ["0 0", "20px 20px"],
-          rotate: [0, 360]
-        }}
-        transition={{ 
-          duration: 10, 
-          repeat: Infinity, 
-          repeatType: "loop" 
-        }}
-      />
-
       <div className="max-w-7xl mx-auto px-4 py-6 relative z-10 flex items-center justify-between">
         <div className="flex-1 pr-8">
           <motion.h2 
@@ -62,10 +44,7 @@ const MarketplaceBanner = () => {
         >
           <motion.button
             className="bg-white text-[#6366f1] px-6 py-2 rounded-full font-bold shadow-lg"
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: "0 10px 15px rgba(0,0,0,0.2)"
-            }}
+            whileHover={{ scale: 1.05, boxShadow: "0 10px 15px rgba(0,0,0,0.2)" }}
             whileTap={{ scale: 0.95 }}
           >
             Explore Now
@@ -80,16 +59,15 @@ const ProductListing = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const { user } = useAuth();
-  const { cart } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setProducts(gameCards);
-        setFilteredProducts(gameCards);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/product/`);
+        console.log("Fetched Products:", response.data); // Debugging
+        setProducts(response.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -100,14 +78,10 @@ const ProductListing = () => {
     fetchProducts();
   }, []);
 
-  // Search and filter functionality
-  useEffect(() => {
-    const filtered = products.filter(product => 
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchTerm, products]);
+  const filteredProducts = products.filter(product => 
+    product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -115,15 +89,8 @@ const ProductListing = () => {
         <motion.div 
           className="animate-pulse text-xl font-semibold text-indigo-400"
           initial={{ opacity: 0 }}
-          animate={{ 
-            opacity: [0.5, 1, 0.5],
-            scale: [1, 1.05, 1]
-          }}
-          transition={{ 
-            duration: 1.5, 
-            repeat: Infinity, 
-            repeatType: "loop" 
-          }}
+          animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.05, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
         >
           Loading marketplace...
         </motion.div>
@@ -136,20 +103,6 @@ const ProductListing = () => {
       {/* Top Banner */}
       <MarketplaceBanner />
 
-      {/* Background gradient effects */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.3), transparent 70%)",
-          opacity: 0.4,
-        }}
-        animate={{ 
-          opacity: [0.3, 0.5, 0.3], 
-          scale: [1, 1.05, 1] 
-        }}
-        transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
-      />
-
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
@@ -160,7 +113,6 @@ const ProductListing = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Search and Action Bar */}
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
             {/* Search Input */}
             <motion.div 
@@ -205,7 +157,7 @@ const ProductListing = () => {
                 {filteredProducts.length} Available Products
               </h2>
               {filteredProducts.length > 0 ? (
-                <Cards gameCards={filteredProducts} />
+                <Cards games={filteredProducts} />
               ) : (
                 <motion.div 
                   className="text-center text-gray-400"
@@ -217,7 +169,7 @@ const ProductListing = () => {
               )}
             </div>
           </motion.div>
-          
+
           {/* Cart Summary (for logged-in users) */}
           {user && (
             <motion.div 
