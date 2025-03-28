@@ -9,6 +9,7 @@ require('dotenv').config();
 const WebSocket = require('ws');
 const http = require('http');
 const productRoutes = require('./routes/productRoutes');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -16,6 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*', credentials: true })); // Avoid '*' in production
 app.use(passport.initialize());
+app.use(cookieParser());
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
