@@ -56,13 +56,23 @@ exports.getAllProducts = async (req, res) => {
 // Get a single product by ID
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('user', 'name email');
+    const { id } = req.params;
+    console.log(`Fetching product with ID: ${id}`);
+    
+    // Attempt to find the product by ID
+    const product = await Product.findById(id).populate('user', 'name email');
+    
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      console.error(`Product with ID ${id} not found. Ensure the ID is correct and exists in the database.`);
+      return res.status(404).json({ 
+        message: 'Product not found', 
+        details: `No product found with the provided ID: ${id}` 
+      });
     }
+    
     res.status(200).json(product);
   } catch (error) {
-    console.error('Error fetching product:', error);
+    console.error(`Error fetching product with ID ${req.params.id}:`, error);
     res.status(500).json({ message: 'Failed to fetch product', error: error.message });
   }
 };

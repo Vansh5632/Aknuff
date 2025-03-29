@@ -5,9 +5,11 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import axios from 'axios';
 
 const ProductDetail = () => {
   const { id } = useParams();
+  console.log("this is product id "+ id);
   const [product, setProduct] = useState(null);
   const [seller, setSeller] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -18,17 +20,21 @@ const ProductDetail = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
+
+
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/product/${id}`);
+        const response = await axios.get(`http://localhost:3000/api/product/${id}`);
+        console.log("this is product response "+ response);
         if (!response.ok) {
           throw new Error('Failed to fetch product');
         }
         const data = await response.json();
         setProduct(data);
 
-        const sellerResponse = await fetch(`http://localhost:3000/api/auth/user/${data.user}`);
+        const sellerResponse = await axios.get(`http://localhost:3000/api/auth/user/${data.user}`);
         if (!sellerResponse.ok) {
           throw new Error('Failed to fetch seller');
         }

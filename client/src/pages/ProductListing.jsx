@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Cards from '../components/Cards';
-import CartSummary from '../components/CartSummary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import CartSummary from '../components/CartSummary';
 
+// MarketplaceBanner component remains the same
 const MarketplaceBanner = () => (
   <motion.div
     className="relative overflow-hidden bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white py-8"
@@ -45,9 +43,57 @@ const MarketplaceBanner = () => (
   </motion.div>
 );
 
+// New GameCard component
+const GameCard = ({ product }) => {
+  const navigate = useNavigate();
+
+  return (
+    <motion.div
+      className="bg-gray-800/80 rounded-xl overflow-hidden border border-[#6366f1]/30 shadow-lg"
+      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.2)" }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="relative h-48">
+        {console.log(product.image)}
+        <img
+          src={`http://localhost:3000${product.image}`}
+          alt={product.title}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-2 right-2 bg-[#6366f1]/80 text-white px-2 py-1 rounded-full text-xs font-semibold">
+          {product.platform}
+        </div>
+      </div>
+      
+      <div className="p-4">
+        <h3 className="text-lg font-bold text-white truncate">{product.title}</h3>
+        <p className="text-sm text-gray-400 mt-1 line-clamp-2">{product.description}</p>
+        
+        <div className="mt-3 flex justify-between items-center">
+          <span className="text-xl font-bold text-[#a855f7]">${product.price}</span>
+          <span className="text-sm text-gray-500">{product.genre}</span>
+        </div>
+
+        {product.gameId && (
+          <p className="text-xs text-gray-500 mt-2">ID: {product.gameId}</p>
+        )}
+        
+        <motion.button
+          className="w-full mt-4 py-2 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-lg font-semibold"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate(`/product/${product._id}`)} // Assuming your product has an _id field
+        >
+          View Details
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+};
+
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]); // Added missing state
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth();
@@ -73,7 +119,7 @@ const ProductListing = () => {
     const filtered = products.filter(
       (product) =>
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (product.genre && product.genre.toLowerCase().includes(searchTerm.toLowerCase())) // Changed category to genre
     );
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
@@ -116,7 +162,7 @@ const ProductListing = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <motion.input
               type="search"
-              placeholder="Search games, categories, or game IDs..."
+              placeholder="Search games, genres, or game IDs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full md:w-1/2 px-6 py-3 bg-gray-800/80 rounded-full border border-[#6366f1]/50 focus:outline-none focus:ring-2 focus:ring-[#a855f7] text-white"
@@ -143,7 +189,11 @@ const ProductListing = () => {
             {filteredProducts.length} Products Available
           </h2>
           {filteredProducts.length > 0 ? (
-            <Cards gameCards={filteredProducts} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <GameCard key={product._id} product={product} />
+              ))}
+            </div>
           ) : (
             <motion.p
               className="text-center text-gray-400"

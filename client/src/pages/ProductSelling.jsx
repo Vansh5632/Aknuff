@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // Ensure motion is used in the JSX below
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import jwt_decode from 'jwt-decode'; // Add jwt-decode to decode the token
+import {jwtDecode} from 'jwt-decode'; // Corrected import for jwt-decode
 
 const ProductSelling = () => {
   const [formData, setFormData] = useState({
@@ -50,14 +50,15 @@ const ProductSelling = () => {
     }
 
     try {
-      const decoded = jwt_decode(token);
+      const decoded = jwtDecode(token);
       const currentTime = Date.now() / 1000;
       if (decoded.exp < currentTime) {
         setError('Your session has expired. Please log in again.');
         logout();
         return;
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Token decoding error:', err);
       setError('Invalid token. Please log in again.');
       logout();
       return;

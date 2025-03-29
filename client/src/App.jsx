@@ -44,7 +44,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/product/:productId" element={<ProductDetail />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/chat/:sellerId" element={<Chat />} />
           <Route path="/product-selling" element={<ProductSelling/>}/>
         </Routes>
