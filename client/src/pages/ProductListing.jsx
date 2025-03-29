@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Cards from '../components/Cards';
 import CartSummary from '../components/CartSummary';
 import Navbar from '../components/Navbar';
@@ -48,9 +49,7 @@ const ProductListing = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const { user } = useAuth();
-  const { cart } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -65,7 +65,7 @@ const Login = () => {
   const handleGoogleSuccess = async (response) => {
     setIsLoading(true);
     try {
-      const url = `${import.meta.env.VITE_API_URL}/api/auth/google/token`;
+      const url = `${import.meta.env.VITE_API_URL}/auth/google/token`;
       console.log("Fetching from:", url);
       const res = await fetch(url, {  // Line 70
         method: "POST",

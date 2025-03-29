@@ -24,6 +24,13 @@ exports.signup = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+    // Set token in cookies
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      maxAge: 3600000 // 1 hour
+    });
+
     res.status(201).json({
       user: { id: user._id, name, email },
       token
@@ -39,7 +46,6 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     console.log('Login request received:', { email, password });
 
-    // Convert email to lowercase for case-insensitive comparison
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       console.log('User not found for email:', email);
@@ -55,6 +61,13 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Set token in cookies
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      maxAge: 3600000 // 1 hour
+    });
 
     res.json({
       user: { id: user._id, name: user.name, email: user.email },
