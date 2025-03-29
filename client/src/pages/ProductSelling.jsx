@@ -1,109 +1,234 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Add jwt-decode to decode the token
 
 const ProductSelling = () => {
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        price: "",
-        image: null,
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+    platform: '',
+    genre: '',
+    gameId: '',
+    image: null,
+  });
+  const [error, setError] = useState(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const fileInputRef = React.useRef(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    setFormData({ ...formData, image: e.target.files[0] });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validate user authentication
+    if (!user) {
+      setError('You must be logged in to list a product.');
+      navigate('/login');
+      return;
+    }
+
+    // Check if the token is expired
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication token missing. Please log in again.');
+      logout();
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp < currentTime) {
+        setError('Your session has expired. Please log in again.');
+        logout();
+        return;
+      }
+    } catch (error) {
+      setError('Invalid token. Please log in again.');
+      logout();
+      return;
+    }
+
+    const form = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'price') {
+        form.append(key, parseFloat(formData[key]));
+      } else {
+        form.append(key, formData[key]);
+      }
     });
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+    try {
+      const response = await fetch('http://localhost:3000/api/product', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+      });
 
-    const handleImageChange = (e) => {
-        setFormData({ ...formData, image: e.target.files[0] });
-    };
+      const responseData = await response.json();
+      if (response.ok) {
+        console.log('Product listed successfully:', responseData);
+        setFormData({
+          title: '',
+          description: '',
+          price: '',
+          platform: '',
+          genre: '',
+          gameId: '',
+          image: null,
+        });
+        fileInputRef.current.value = null;
+        alert('Product listed successfully!');
+        navigate('/seller/products');
+      } else {
+        console.error('Failed to list product:', response.status, responseData);
+        if (response.status === 403) {
+          setError('Your session has expired. Please log in again.');
+          logout();
+          return;
+        }
+        setError(responseData.message || 'Failed to list product');
+      }
+    } catch (error) {
+      console.error('Error submitting product:', error);
+      setError('Error submitting product. Please try again.');
+    }
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Game listed:", formData);
-    };
-
-    return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#050417] text-white">
-            <Navbar />
-            <div className="flex-grow flex items-center justify-center py-12 px-4">
-                <motion.div
-                    className="bg-gray-900/90 p-10 rounded-2xl shadow-2xl border border-[#6366f1]/40 w-full max-w-xl backdrop-blur-sm"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7 }}
-                >
-                    <h1 className="text-4xl font-extrabold mb-8 bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent text-center">
-                        List Your Game
-                    </h1>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-300">Game Title</label>
-                            <input
-                                type="text"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-800/50 text-white py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7] focus:border-transparent transition duration-200"
-                                placeholder="Enter game title"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-300">Description</label>
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                required
-                                rows="4"
-                                className="w-full bg-gray-800/50 text-white py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7] focus:border-transparent transition duration-200 resize-none"
-                                placeholder="Describe your game..."
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-300">Price (USD)</label>
-                            <input
-                                type="number"
-                                name="price"
-                                value={formData.price}
-                                onChange={handleChange}
-                                required
-                                className="w-full bg-gray-800/50 text-white py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7] focus:border-transparent transition duration-200"
-                                placeholder="Enter price"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-300">Game Image</label>
-                            <div className="relative">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    required
-                                    className="w-full bg-gray-800/50 text-white py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7] focus:border-transparent transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#6366f1] file:text-white hover:file:bg-[#4f46e5]"
-                                />
-                            </div>
-                        </div>
-                        <motion.button
-                            type="submit"
-                            className="w-full py-4 mt-6 bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition duration-200"
-                            whileHover={{
-                                scale: 1.02,
-                                boxShadow: "0 0 20px rgba(99, 102, 241, 0.6)",
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            List Game
-                        </motion.button>
-                    </form>
-                </motion.div>
+  return (
+    <div className="min-h-screen flex flex-col bg-[#0f172a] text-white">
+      <Navbar />
+      <div className="flex-grow flex items-center justify-center py-12 px-4">
+        <motion.div
+          className="bg-gray-900/90 p-10 rounded-2xl shadow-xl border border-[#6366f1]/40 w-full max-w-xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <h1 className="text-4xl font-extrabold mb-8 bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent text-center">
+            List Your Game
+          </h1>
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-center">
+              {error}
             </div>
-            <Footer />
-        </div>
-    );
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Game Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows="4"
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Price (USD)</label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+                min="0"
+                step="0.01"
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Platform</label>
+              <select
+                name="platform"
+                value={formData.platform}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+              >
+                <option value="">Select Platform</option>
+                <option value="PC">PC</option>
+                <option value="PlayStation">PlayStation</option>
+                <option value="Xbox">Xbox</option>
+                <option value="Nintendo">Nintendo</option>
+                <option value="Mobile">Mobile</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Genre</label>
+              <input
+                type="text"
+                name="genre"
+                value={formData.genre}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Game ID (Optional)</label>
+              <input
+                type="text"
+                name="gameId"
+                value={formData.gameId}
+                onChange={handleChange}
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#a855f7]"
+                placeholder="e.g., MLBB123456"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-300">Game Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                required
+                ref={fileInputRef}
+                className="w-full bg-gray-800/50 py-3 px-4 rounded-xl border border-[#6366f1]/30"
+              />
+            </div>
+            <motion.button
+              type="submit"
+              className="w-full py-4 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-xl font-bold"
+              whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(99,102,241,0.7)" }}
+              whileTap={{ scale: 0.95 }}
+            >
+              List Game
+            </motion.button>
+          </form>
+        </motion.div>
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default ProductSelling;

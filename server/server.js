@@ -9,13 +9,53 @@ require('dotenv').config();
 const WebSocket = require('ws');
 const http = require('http');
 const productRoutes = require('./routes/productRoutes');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs'); // Add fs to create the uploads directory
 
 const app = express();
 
+// Ensure the uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory at:', uploadsDir);
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+// Multer File Filter
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed'), false);
+  }
+};
+
+// Initialize Multer
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: '*', credentials: true })); // Avoid '*' in production
+app.use(cors({ origin: '*', credentials: true }));
 app.use(passport.initialize());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -93,14 +133,22 @@ passport.deserializeUser((userObj, done) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/product',productRoutes);
+app.use('/api/product', upload.single('image'), productRoutes);
+
 // Health Check
 app.get('/', (req, res) => res.send('API is running'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({ message: 'Internal server error' });
+  if (err instanceof multer.MulterError) {
+    // Handle Multer-specific errors
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
+    }
+    return res.status(400).json({ message: 'File upload error', error: err.message });
+  }
+  res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
 // Create HTTP server and WebSocket server
@@ -108,13 +156,12 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 // Store connected clients with their user info
-const clients = new Map(); // Map<ws, { userId: string, googleId: string }>
+const clients = new Map();
 
 // WebSocket connection handling
 wss.on('connection', (ws, req) => {
   console.log('New WebSocket connection established');
 
-  // Authenticate WebSocket connection using JWT
   const token = new URLSearchParams(req.url.split('?')[1]).get('token');
   if (!token) {
     ws.send(JSON.stringify({ error: 'Authentication required' }));
@@ -138,17 +185,14 @@ wss.on('connection', (ws, req) => {
         return;
       }
 
-      // Store client info
-      clients.set(ws, { userId: user._id.toString(), googleId: user.googleId });
+      clients.set(ws, { userId: user._id.toString(), googleId: user.googleId, name: user.name });
       console.log(`Client authenticated: ${user.name} (${user.googleId})`);
 
-      // Send welcome message
       ws.send(JSON.stringify({
         type: 'welcome',
         message: `Welcome, ${user.name}! Connected to WebSocket server`,
       }));
 
-      // Handle incoming messages
       ws.on('message', (message) => {
         try {
           const parsedMessage = JSON.parse(message);
@@ -156,19 +200,29 @@ wss.on('connection', (ws, req) => {
 
           const clientInfo = clients.get(ws);
 
-          // Broadcast message to all connected clients
+          if (!parsedMessage.message || !parsedMessage.recipient || !parsedMessage.timestamp) {
+            ws.send(JSON.stringify({ error: 'Invalid message format: message, recipient, and timestamp are required' }));
+            return;
+          }
+
           wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({
-                type: 'chat',
-                sender: {
-                  userId: clientInfo.userId,
-                  name: user.name,
-                  googleId: clientInfo.googleId,
-                },
-                message: parsedMessage.message,
-                timestamp: new Date().toISOString(),
-              }));
+            const recipientInfo = clients.get(client);
+            if (
+              client.readyState === WebSocket.OPEN &&
+              (recipientInfo.userId === parsedMessage.recipient || recipientInfo.userId === clientInfo.userId)
+            ) {
+              client.send(
+                JSON.stringify({
+                  type: 'chat',
+                  sender: {
+                    userId: clientInfo.userId,
+                    name: clientInfo.name,
+                    googleId: clientInfo.googleId,
+                  },
+                  message: parsedMessage.message,
+                  timestamp: parsedMessage.timestamp,
+                })
+              );
             }
           });
         } catch (error) {
@@ -177,13 +231,11 @@ wss.on('connection', (ws, req) => {
         }
       });
 
-      // Handle disconnection
       ws.on('close', () => {
         clients.delete(ws);
         console.log(`Client disconnected: ${user.name} (${user.googleId})`);
       });
 
-      // Handle errors
       ws.on('error', (error) => {
         console.error('WebSocket error:', error);
       });

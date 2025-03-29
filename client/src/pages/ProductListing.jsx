@@ -7,74 +7,42 @@ import Cards from '../components/Cards';
 import CartSummary from '../components/CartSummary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { gameCards } from '../components/Cards';
 
-const MarketplaceBanner = () => {
-  return (
-    <motion.div 
-      className="relative overflow-hidden bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white"
-      initial={{ opacity: 0, y: -50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, type: "spring", stiffness: 120 }}
-    >
-      {/* Background Animated Dots */}
-      <motion.div 
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: "radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-        animate={{ 
-          backgroundPosition: ["0 0", "20px 20px"],
-          rotate: [0, 360]
-        }}
-        transition={{ 
-          duration: 10, 
-          repeat: Infinity, 
-          repeatType: "loop" 
-        }}
-      />
-
-      <div className="max-w-7xl mx-auto px-4 py-6 relative z-10 flex items-center justify-between">
-        <div className="flex-1 pr-8">
-          <motion.h2 
-            className="text-2xl font-extrabold mb-2"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            Welcome to Epic Game Marketplace
-          </motion.h2>
-          <motion.p 
-            className="text-sm opacity-80"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            Discover, Buy, and Sell the Latest Digital Game Treasures
-          </motion.p>
-        </div>
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.7, type: "spring", stiffness: 300 }}
-        >
-          <motion.button
-            className="bg-white text-[#6366f1] px-6 py-2 rounded-full font-bold shadow-lg"
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: "0 10px 15px rgba(0,0,0,0.2)"
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Explore Now
-          </motion.button>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
+const MarketplaceBanner = () => (
+  <motion.div
+    className="relative overflow-hidden bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white py-8"
+    initial={{ opacity: 0, y: -50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+  >
+    <motion.div
+      className="absolute inset-0 opacity-20"
+      style={{
+        backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.2) 2px, transparent 2px)",
+        backgroundSize: "30px 30px",
+      }}
+      animate={{ backgroundPosition: ["0 0", "30px 30px"] }}
+      transition={{ duration: 8, repeat: Infinity }}
+    />
+    <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <h2 className="text-3xl font-extrabold">Epic Game Marketplace</h2>
+        <p className="text-sm opacity-90">Your one-stop shop for digital treasures</p>
+      </motion.div>
+      <motion.button
+        className="px-6 py-2 bg-white text-[#6366f1] rounded-full font-bold shadow-lg"
+        whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(99,102,241,0.5)" }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Browse All
+      </motion.button>
+    </div>
+  </motion.div>
+);
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
@@ -88,23 +56,24 @@ const ProductListing = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setProducts(gameCards);
-        setFilteredProducts(gameCards);
+        const response = await fetch('http://localhost:3000/api/product');
+        const data = await response.json();
+        setProducts(data);
+        setFilteredProducts(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching products:', error);
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // Search and filter functionality
   useEffect(() => {
-    const filtered = products.filter(product => 
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = products.filter(
+      (product) =>
+        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
@@ -112,128 +81,92 @@ const ProductListing = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-[#0f172a] text-white">
-        <motion.div 
-          className="animate-pulse text-xl font-semibold text-indigo-400"
-          initial={{ opacity: 0 }}
-          animate={{ 
-            opacity: [0.5, 1, 0.5],
-            scale: [1, 1.05, 1]
-          }}
-          transition={{ 
-            duration: 1.5, 
-            repeat: Infinity, 
-            repeatType: "loop" 
-          }}
+        <motion.div
+          className="text-xl font-semibold text-indigo-400"
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 1, repeat: Infinity }}
         >
-          Loading marketplace...
+          Loading Marketplace...
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="product-listing-page min-h-screen bg-[#0f172a] text-white relative overflow-hidden">
-      {/* Top Banner */}
-      <MarketplaceBanner />
-
-      {/* Background gradient effects */}
+    <div className="min-h-screen bg-[#0f172a] text-white relative overflow-hidden">
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.3), transparent 70%)",
+          background: "radial-gradient(circle at center, rgba(99,102,241,0.3), transparent 70%)",
           opacity: 0.4,
         }}
-        animate={{ 
-          opacity: [0.3, 0.5, 0.3], 
-          scale: [1, 1.05, 1] 
-        }}
-        transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
+        animate={{ opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 5, repeat: Infinity }}
       />
-
       <Navbar />
+      <MarketplaceBanner />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        {/* Page Header */}
-        <motion.div 
-          className="mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+      <div className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+        <motion.div
+          className="mb-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
         >
-          {/* Search and Action Bar */}
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
-            {/* Search Input */}
-            <motion.div 
-              className="flex-grow w-full md:w-auto"
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <motion.input
+              type="search"
+              placeholder="Search games, categories, or game IDs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full md:w-1/2 px-6 py-3 bg-gray-800/80 rounded-full border border-[#6366f1]/50 focus:outline-none focus:ring-2 focus:ring-[#a855f7] text-white"
               whileFocus={{ scale: 1.02 }}
-            >
-              <input 
-                type="search" 
-                placeholder="Search games, categories..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-[#6366f1]/30 focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
-              />
-            </motion.div>
-
-            {/* Sell Product Button */}
+            />
             <motion.button
               onClick={() => navigate('/product-selling')}
-              className="px-6 py-2 bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white font-bold rounded-lg shadow-lg"
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 0 15px rgba(99, 102, 241, 0.5)",
-              }}
-              whileTap={{ scale: 0.98 }}
+              className="px-8 py-3 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-full font-bold shadow-lg"
+              whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(99,102,241,0.7)" }}
+              whileTap={{ scale: 0.95 }}
             >
               Sell Your Product
             </motion.button>
           </div>
         </motion.div>
 
-        {/* Main Content Area */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Products Section */}
-          <motion.div 
-            className="flex-1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="bg-gray-900/80 rounded-xl shadow-lg p-6 mb-6 border border-[#6366f1]/20">
-              <h2 className="text-xl font-bold text-white mb-4">
-                {filteredProducts.length} Available Products
-              </h2>
-              {filteredProducts.length > 0 ? (
-                <Cards gameCards={filteredProducts} />
-              ) : (
-                <motion.div 
-                  className="text-center text-gray-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <p>No products found matching your search</p>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-          
-          {/* Cart Summary (for logged-in users) */}
-          {user && (
-            <motion.div 
-              className="lg:w-80"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+        <motion.div
+          className="bg-gray-900/90 rounded-2xl p-8 border border-[#6366f1]/30 shadow-xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">
+            {filteredProducts.length} Products Available
+          </h2>
+          {filteredProducts.length > 0 ? (
+            <Cards gameCards={filteredProducts} />
+          ) : (
+            <motion.p
+              className="text-center text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
-              <div className="sticky top-6">
-                <CartSummary />
-              </div>
-            </motion.div>
+              No products found. Try a different search!
+            </motion.p>
           )}
-        </div>
+        </motion.div>
+
+        {user && (
+          <motion.div
+            className="lg:w-80 mt-8 lg:mt-0 sticky top-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <CartSummary />
+          </motion.div>
+        )}
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 };
