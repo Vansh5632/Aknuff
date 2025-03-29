@@ -47,6 +47,7 @@ const MarketplaceBanner = () => (
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // Added missing state
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth();
