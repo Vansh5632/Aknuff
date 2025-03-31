@@ -1,21 +1,61 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const Chat = () => {
   const { sellerId } = useParams();
+  const location = useLocation();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [chattingWith, setChattingWith] = useState(sellerId || 'Unknown');
+  const [chattingWith, setChattingWith] = useState('Loading...');
   const [socket, setSocket] = useState(null);
   const messagesContainerRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const user = JSON.parse(localStorage.getItem('user')); // Get current user
+
+  // Get productId from URL query params (passed from ProductDetail)
+  const queryParams = new URLSearchParams(location.search);
+  const productId = queryParams.get('productId');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const ws = new WebSocket(`ws://localhost:3000?token=${token}`);
+
+    // Fetch seller's name and initial messages
+    const initializeChat = async () => {
+      try {
+        const [sellerResponse, messagesResponse] = await Promise.all([
+          axios.get(`${API_URL}/api/auth/user/${sellerId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${API_URL}/api/messages/${productId}/${sellerId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setChattingWith(sellerResponse.data.name);
+        setMessages(
+          messagesResponse.data.map((msg) => ({
+            id: msg._id,
+            sender: msg.sender.name,
+            text: msg.message,
+            time: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isReceived: msg.sender._id !== user.id,
+          }))
+        );
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+        setChattingWith('Unknown Seller');
+      }
+    };
+
+    initializeChat();
+
+    // WebSocket connection
+    const ws = new WebSocket(`ws://localhost:3000?token=${token}&productId=${productId}`);
 
     ws.onopen = () => {
       console.log('WebSocket connected');
@@ -33,7 +73,7 @@ const Chat = () => {
             sender: data.sender.name,
             text: data.message,
             time: new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isReceived: data.sender.userId !== localStorage.getItem('userId'), // Assuming userId is stored
+            isReceived: data.sender.userId !== user.id,
           },
         ]);
       } else if (data.type === 'welcome') {
@@ -51,7 +91,7 @@ const Chat = () => {
     };
 
     return () => ws.close();
-  }, []);
+  }, [sellerId, productId, user.id]);
 
   useEffect(() => {
     if (messagesContainerRef.current) {

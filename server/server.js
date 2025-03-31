@@ -13,6 +13,7 @@ const productRoutes = require('./routes/productRoutes');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Add fs to create the uploads directory
+const User = require('./models/User');
 
 const app = express();
 
@@ -120,16 +121,17 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Store connected clients with their user info
 const clients = new Map();
 
 wss.on('connection', (ws, req) => {
   console.log('New WebSocket connection established');
 
-  const token = new URLSearchParams(req.url.split('?')[1]).get('token');
+  const urlParams = new URLSearchParams(req.url.split('?')[1]);
+  const token = urlParams.get('token');
+  const productId = urlParams.get('productId'); // Expect productId in WebSocket URL
 
-  if (!token) {
-    ws.send(JSON.stringify({ error: 'Authentication required' }));
+  if (!token || !productId) {
+    ws.send(JSON.stringify({ error: 'Authentication and productId required' }));
     ws.close();
     return;
   }
@@ -149,30 +151,40 @@ wss.on('connection', (ws, req) => {
         return;
       }
 
-      clients.set(ws, { userId: user._id.toString(), googleId: user.googleId, name: user.name });
-      console.log(`Client authenticated: ${user.name} (${user.googleId})`);
+      clients.set(ws, { userId: user._id.toString(), googleId: user.googleId, name: user.name, productId });
+      console.log(`Client authenticated: ${user.name} (${user.googleId}) for product ${productId}`);
 
       ws.send(JSON.stringify({
         type: 'welcome',
-        message: `Welcome, ${user.name}! Connected to WebSocket server`,
+        message: `Welcome, ${user.name}! Connected to chat for product ${productId}`,
       }));
 
-      ws.on('message', (message) => {
+      ws.on('message', async (message) => {
         try {
           const parsedMessage = JSON.parse(message);
-
           const clientInfo = clients.get(ws);
 
           if (!parsedMessage.message || !parsedMessage.recipient || !parsedMessage.timestamp) {
-            ws.send(JSON.stringify({ error: 'Invalid message format: message, recipient, and timestamp are required' }));
+            ws.send(JSON.stringify({ error: 'Invalid message format: message, recipient, and timestamp required' }));
             return;
           }
+
+          // Save message to MongoDB
+          const newMessage = new Message({
+            sender: clientInfo.userId,
+            recipient: parsedMessage.recipient,
+            product: productId,
+            message: parsedMessage.message,
+            timestamp: parsedMessage.timestamp,
+          });
+          await newMessage.save();
 
           wss.clients.forEach((client) => {
             const recipientInfo = clients.get(client);
             if (
               client.readyState === WebSocket.OPEN &&
-              (recipientInfo.userId === parsedMessage.recipient || recipientInfo.userId === clientInfo.userId)
+              (recipientInfo.userId === parsedMessage.recipient || recipientInfo.userId === clientInfo.userId) &&
+              recipientInfo.productId === productId // Ensure chat is product-specific
             ) {
               client.send(
                 JSON.stringify({
@@ -184,13 +196,14 @@ wss.on('connection', (ws, req) => {
                   },
                   message: parsedMessage.message,
                   timestamp: parsedMessage.timestamp,
+                  productId,
                 })
               );
             }
           });
         } catch (error) {
-          console.error('Error parsing message:', error);
-          ws.send(JSON.stringify({ error: 'Invalid message format' }));
+          console.error('Error handling message:', error);
+          ws.send(JSON.stringify({ error: 'Failed to process message' }));
         }
       });
 
