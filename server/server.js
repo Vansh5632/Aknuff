@@ -14,6 +14,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Add fs to create the uploads directory
 const User = require('./models/User');
+const Message = require('./models/Message');
 
 const app = express();
 
