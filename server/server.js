@@ -12,53 +12,41 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // Add fs to create the uploads directory
+const fs = require('fs');
 const User = require('./models/User');
 const Message = require('./models/Message');
+const authMiddleware = require('./middleware/auth');
+const messageRoutes = require('./routes/messageRoutes');
 
 const app = express();
 
-// Ensure the uploads directory exists
+// Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('Created uploads directory at:', uploadsDir);
 }
 
-// Multer Storage Configuration
+// Multer Configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
+  destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
-
-// Multer File Filter
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed'), false);
-  }
+  if (file.mimetype.startsWith('image/')) cb(null, true);
+  else cb(new Error('Only image files are allowed'), false);
 };
-
-// Initialize Multer
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
+const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Middleware
 app.use(express.json());
 app.use(cors({ origin: '*', credentials: true }));
 app.use(passport.initialize());
-
-// Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
+app.use('/api/messages', messageRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -66,41 +54,54 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Passport Google Strategy
-passport.use(new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${process.env.API_URL || 'http://localhost:3000'}/api/auth/google/callback`,
-  },
-  async (accessToken, refreshToken, profile, done) => {
-    try {
-      let user = await User.findOne({ googleId: profile.id });
-
-      if (!user) {
-        user = new User({
-          googleId: profile.id,
-          name: profile.displayName,
-          email: profile.emails[0].value,
-          password: null,
-        });
-        await user.save();
-      }
-
-      const token = jwt.sign({ id: user._id, googleId: user.googleId }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
-
-      return done(null, { user, token });
-    } catch (err) {
-      console.error('Error during Google OAuth:', err);
-      return done(err, null);
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: `${process.env.API_URL || 'http://localhost:3000'}/api/auth/google/callback`,
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await User.findOne({ googleId: profile.id });
+    if (!user) {
+      user = new User({ googleId: profile.id, name: profile.displayName, email: profile.emails[0].value, password: null });
+      await user.save();
     }
+    const token = jwt.sign({ id: user._id, googleId: user.googleId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return done(null, { user, token });
+  } catch (err) {
+    console.error('Error during Google OAuth:', err);
+    return done(err, null);
   }
-));
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/product', upload.single('image'), productRoutes);
+
+// Message Routes
+app.get('/api/auth/user/:id', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ name: user.name });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/messages/:productId/:recipientId', authMiddleware, async (req, res) => {
+  try {
+    const messages = await Message.find({
+      product: req.params.productId,
+      $or: [
+        { sender: req.user.id, recipient: req.params.recipientId },
+        { sender: req.params.recipientId, recipient: req.user.id },
+      ],
+    }).populate('sender', 'name');
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // Health Check
 app.get('/', (req, res) => res.send('API is running'));
@@ -109,10 +110,7 @@ app.get('/', (req, res) => res.send('API is running'));
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   if (err instanceof multer.MulterError) {
-    // Handle Multer-specific errors
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
-    }
+    if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ message: 'File too large. Maximum size is 5MB.' });
     return res.status(400).json({ message: 'File upload error', error: err.message });
   }
   res.status(500).json({ message: 'Internal server error', error: err.message });
@@ -121,15 +119,13 @@ app.use((err, req, res, next) => {
 // WebSocket Setup
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-
 const clients = new Map();
 
 wss.on('connection', (ws, req) => {
   console.log('New WebSocket connection established');
-
   const urlParams = new URLSearchParams(req.url.split('?')[1]);
   const token = urlParams.get('token');
-  const productId = urlParams.get('productId'); // Expect productId in WebSocket URL
+  const productId = urlParams.get('productId');
 
   if (!token || !productId) {
     ws.send(JSON.stringify({ error: 'Authentication and productId required' }));
@@ -170,7 +166,6 @@ wss.on('connection', (ws, req) => {
             return;
           }
 
-          // Save message to MongoDB
           const newMessage = new Message({
             sender: clientInfo.userId,
             recipient: parsedMessage.recipient,
@@ -185,16 +180,12 @@ wss.on('connection', (ws, req) => {
             if (
               client.readyState === WebSocket.OPEN &&
               (recipientInfo.userId === parsedMessage.recipient || recipientInfo.userId === clientInfo.userId) &&
-              recipientInfo.productId === productId // Ensure chat is product-specific
+              recipientInfo.productId === productId
             ) {
               client.send(
                 JSON.stringify({
                   type: 'chat',
-                  sender: {
-                    userId: clientInfo.userId,
-                    name: clientInfo.name,
-                    googleId: clientInfo.googleId,
-                  },
+                  sender: { userId: clientInfo.userId, name: clientInfo.name, googleId: clientInfo.googleId },
                   message: parsedMessage.message,
                   timestamp: parsedMessage.timestamp,
                   productId,
@@ -213,9 +204,7 @@ wss.on('connection', (ws, req) => {
         console.log(`Client disconnected: ${user.name} (${user.googleId})`);
       });
 
-      ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
-      });
+      ws.on('error', (error) => console.error('WebSocket error:', error));
     } catch (error) {
       console.error('Error verifying user:', error);
       ws.close();
@@ -223,7 +212,7 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-// Start the server
+// Start Server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

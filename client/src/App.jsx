@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ProductPage from "./pages/ProductListing";
 import ProductDetail from "./pages/ProductDetail";
 import Chat from "./pages/Chat";
+import ChatList from "./pages/ChatsList";
 import ProductSelling from "./pages/ProductSelling";
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
           />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/chat/:sellerId" element={<Chat />} />
+          <Route path="/chats" element={<ChatList />} />
           <Route path="/product-selling" element={<ProductSelling/>}/>
         </Routes>
       </AnimatePresence>
