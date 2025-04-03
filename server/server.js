@@ -17,6 +17,7 @@ const User = require('./models/User');
 const Message = require('./models/Message');
 const authMiddleware = require('./middleware/auth');
 const messageRoutes = require('./routes/messageRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -76,6 +77,7 @@ passport.use(new GoogleStrategy({
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/product', upload.single('image'), productRoutes);
+app.use('/api/reviews',reviewRoutes);
 
 // Message Routes
 app.get('/api/auth/user/:id', authMiddleware, async (req, res) => {
