@@ -40,6 +40,8 @@ const ProductDetail = () => {
     fetchProduct();
     fetchReviews();
   }, [id]);
+  console.log("Product object:", product);
+
 
   const handleAddReview = async () => {
     try {
@@ -64,7 +66,8 @@ const ProductDetail = () => {
   };
 
   const handleChatWithSeller = () => {
-    navigate(`/chat/${product.user._id}?productId=${product._id}`);
+    console.log(`Navigating to: /chat/${product.user.id}`);
+    navigate(`/chat/${product.user}`);
   };
 
   if (loading) {
@@ -102,16 +105,35 @@ const ProductDetail = () => {
             />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-100">{product.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-100">
+              {product.title}
+            </h1>
             <p className="text-2xl font-bold text-blue-400">${product.price}</p>
-            <p className="text-gray-300 mt-4 leading-relaxed">{product.description}</p>
+            <p className="text-gray-300 mt-4 leading-relaxed">
+              {product.description}
+            </p>
 
             <div className="mt-6 flex items-center">
               <span className="text-gray-300 mr-4">Quantity:</span>
               <div className="flex items-center border border-gray-700 rounded-lg overflow-hidden">
-                <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white" onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>-</button>
-                <input type="number" value={quantity} className="w-16 text-center bg-gray-900 text-white border-0 focus:ring-0" readOnly />
-                <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white" onClick={() => setQuantity(quantity + 1)}>+</button>
+                <button
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white"
+                  onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  value={quantity}
+                  className="w-16 text-center bg-gray-900 text-white border-0 focus:ring-0"
+                  readOnly
+                />
+                <button
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white"
+                  onClick={() => setQuantity(quantity + 1)}
+                >
+                  +
+                </button>
               </div>
             </div>
 
@@ -137,20 +159,38 @@ const ProductDetail = () => {
 
         {/* Reviews Section */}
         <div className="mt-16">
-          <h2 className="text-2xl font-semibold text-gray-100 mb-6">Product Reviews</h2>
+          <h2 className="text-2xl font-semibold text-gray-100 mb-6">
+            Product Reviews
+          </h2>
           {reviews.length === 0 ? (
-            <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
+            <p className="text-gray-500">
+              No reviews yet. Be the first to review this product!
+            </p>
           ) : (
             <div className="space-y-4">
               {reviews.map((review) => (
-                <div key={review._id} className="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700">
+                <div
+                  key={review._id}
+                  className="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700"
+                >
                   <div className="flex items-center justify-between">
-                    <p className="text-gray-100 font-semibold">{review.user?.name || "Anonymous"}</p>
-                    <span className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString()}</span>
+                    <p className="text-gray-100 font-semibold">
+                      {review.user?.name || "Anonymous"}
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
                   <div className="flex items-center mt-1">
                     {[...Array(5)].map((_, index) => (
-                      <Star key={index} className={`h-4 w-4 ${index < review.rating ? "text-yellow-500" : "text-gray-600"}`} />
+                      <Star
+                        key={index}
+                        className={`h-4 w-4 ${
+                          index < review.rating
+                            ? "text-yellow-500"
+                            : "text-gray-600"
+                        }`}
+                      />
                     ))}
                   </div>
                   <p className="text-gray-300 mt-2">{review.text}</p>
@@ -161,18 +201,33 @@ const ProductDetail = () => {
 
           {/* Add Review Form */}
           <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">Leave a Review</h3>
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">
+              Leave a Review
+            </h3>
             <textarea
               className="w-full p-4 border border-gray-700 rounded-lg bg-gray-900 text-white"
               placeholder="Write your review here..."
               value={newReview.text}
-              onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
+              onChange={(e) =>
+                setNewReview({ ...newReview, text: e.target.value })
+              }
             />
             <div className="flex items-center mb-4">
               <span className="text-gray-300 mr-2">Rating:</span>
               {[...Array(5)].map((_, index) => (
-                <button key={index} onClick={() => setNewReview({ ...newReview, rating: index + 1 })}>
-                  <Star className={`h-6 w-6 ${index < newReview.rating ? "text-yellow-500" : "text-gray-600"}`} />
+                <button
+                  key={index}
+                  onClick={() =>
+                    setNewReview({ ...newReview, rating: index + 1 })
+                  }
+                >
+                  <Star
+                    className={`h-6 w-6 ${
+                      index < newReview.rating
+                        ? "text-yellow-500"
+                        : "text-gray-600"
+                    }`}
+                  />
                 </button>
               ))}
             </div>

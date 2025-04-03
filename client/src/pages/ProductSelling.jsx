@@ -96,7 +96,7 @@ const ProductSelling = () => {
         });
         fileInputRef.current.value = null;
         alert('Product listed successfully!');
-        navigate('/seller/products');
+        navigate('/products');
       } else {
         console.error('Failed to list product:', response.status, responseData);
         if (response.status === 403) {
