@@ -10,14 +10,14 @@ const http = require('http');
 const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const User = require('./models/User');
 const Message = require('./models/Message');
 const authMiddleware = require('./middleware/auth');
-const messageRoutes = require('./routes/messageRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
@@ -45,9 +45,9 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024
 // Middleware
 app.use(express.json());
 app.use(cors({ origin: '*', credentials: true }));
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use('/uploads', express.static('uploads'));
-app.use('/api/messages', messageRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -77,7 +77,8 @@ passport.use(new GoogleStrategy({
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/product', upload.single('image'), productRoutes);
-app.use('/api/reviews',reviewRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Message Routes
 app.get('/api/auth/user/:id', authMiddleware, async (req, res) => {
@@ -86,21 +87,7 @@ app.get('/api/auth/user/:id', authMiddleware, async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({ name: user.name });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-app.get('/api/messages/:productId/:recipientId', authMiddleware, async (req, res) => {
-  try {
-    const messages = await Message.find({
-      product: req.params.productId,
-      $or: [
-        { sender: req.user.id, recipient: req.params.recipientId },
-        { sender: req.params.recipientId, recipient: req.user.id },
-      ],
-    }).populate('sender', 'name');
-    res.json(messages);
-  } catch (error) {
+    console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

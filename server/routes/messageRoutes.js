@@ -36,4 +36,20 @@ router.get('/active', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/:productId/:recipientId', authMiddleware, async (req, res) => {
+  try {
+    const messages = await Message.find({
+      product: req.params.productId,
+      $or: [
+        { sender: req.user.id, recipient: req.params.recipientId },
+        { sender: req.params.recipientId, recipient: req.user.id },
+      ],
+    }).populate('sender', 'name');
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -1,58 +1,73 @@
-// client/src/App.jsx
-import { Route, Routes } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import Home from "./pages/Home";
-import Cart from "./pages/Cart";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ProductPage from "./pages/ProductListing";
-import ProductDetail from "./pages/ProductDetail";
-import Chat from "./pages/Chat";
-import ChatList from "./pages/ChatsList";
-import ProductSelling from "./pages/ProductSelling";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProductListing from './pages/ProductListing';
+import ProductDetail from './pages/ProductDetail';
+import ProductSelling from './pages/ProductSelling';
+import Profile from './pages/Profile';
+import Cart from './pages/Cart';
+import Chat from './pages/Chat';
+import ChatsList from './pages/ChatsList';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
+const App = () => {
   return (
-    <div className="bg-gray-900 text-white min-h-screen">
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <ProductPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/chat/:sellerId" element={<Chat />} />
-          <Route path="/chats" element={<ChatList />} />
-          <Route path="/product-selling" element={<ProductSelling/>}/>
-        </Routes>
-      </AnimatePresence>
-    </div>
+    <AuthProvider>
+      <CartProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/products" element={<ProductListing />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route
+              path="/sell"
+              element={
+                <ProtectedRoute>
+                  <ProductSelling />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat/:sellerId"
+              element={
+                <ProtectedRoute>
+                  <Chat />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chats"
+              element={
+                <ProtectedRoute>
+                  <ChatsList />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+      </CartProvider>
+    </AuthProvider>
   );
-}
+};
 
 export default App;

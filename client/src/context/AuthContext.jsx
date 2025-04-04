@@ -1,3 +1,4 @@
+// client/src/context/AuthContext.jsx
 import { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Login failed";
       toast.error(message);
-      throw error; // Let the caller handle further if needed
+      throw error;
     }
   };
 
