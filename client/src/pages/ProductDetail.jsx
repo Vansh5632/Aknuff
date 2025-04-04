@@ -1,9 +1,11 @@
+// client/src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Star, Share2, Heart, MessageCircle, ShoppingCart, Shield, Clock, ArrowLeft } from "lucide-react";
+import { useAuth } from '../context/AuthContext';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,6 +17,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [wishlist, setWishlist] = useState(false);
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -44,24 +47,45 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAddReview = async () => {
+    if (!user || !token) {
+      alert('You must be logged in to submit a review.');
+      navigate('/login');
+      return;
+    }
+
     try {
-      await fetch(`http://localhost:3000/api/reviews`, {
+      const response = await fetch(`http://localhost:3000/api/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           productId: id,
           text: newReview.text,
           rating: newReview.rating,
+          userId: user.id, // Include the user ID
         }),
       });
-      setNewReview({ text: "", rating: 0 });
-      const response = await fetch(`http://localhost:3000/api/reviews/${id}`);
-      const data = await response.json();
-      setReviews(data);
+
+      const responseData = await response.json();
+      if (response.ok) {
+        setNewReview({ text: "", rating: 0 });
+        const updatedReviews = await fetch(`http://localhost:3000/api/reviews/${id}`);
+        const data = await updatedReviews.json();
+        setReviews(data);
+      } else {
+        console.error('Failed to add review:', response.status, responseData);
+        if (response.status === 401) {
+          alert('Your session has expired. Please log in again.');
+          navigate('/login');
+        } else {
+          alert(responseData.error || 'Failed to add review');
+        }
+      }
     } catch (error) {
       console.error("Error adding review:", error);
+      alert('Error adding review. Please try again.');
     }
   };
 
@@ -108,14 +132,12 @@ const ProductDetail = () => {
     );
   }
 
-  // Mock images array (in a real app, this would come from the product data)
   const productImages = [
     `http://localhost:3000${product.image}`,
-    `http://localhost:3000${product.image}`, // Duplicated for demo purposes
-    `http://localhost:3000${product.image}`, // Duplicated for demo purposes
+    `http://localhost:3000${product.image}`,
+    `http://localhost:3000${product.image}`,
   ];
 
-  // Calculate average rating
   const avgRating = reviews.length 
     ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length 
     : 0;
@@ -124,7 +146,6 @@ const ProductDetail = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
       <Navbar />
       
-      {/* Breadcrumb navigation */}
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center text-sm text-gray-400">
           <button onClick={() => navigate('/')} className="hover:text-blue-400 transition-colors">Home</button>
@@ -137,10 +158,8 @@ const ProductDetail = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Product Images Section */}
           <div className="lg:col-span-7">
             <div className="bg-gray-800/40 p-6 rounded-2xl shadow-lg border border-gray-700/50">
-              {/* Main Image */}
               <motion.div 
                 className="w-full h-96 relative overflow-hidden rounded-xl bg-gray-900/60"
                 whileHover={{ scale: 1.02 }}
@@ -170,7 +189,6 @@ const ProductDetail = () => {
                 </div>
               </motion.div>
               
-              {/* Thumbnail Gallery */}
               <div className="mt-4 flex space-x-4 overflow-x-auto pb-2 pt-2">
                 {productImages.map((img, index) => (
                   <motion.div
@@ -191,7 +209,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Reviews Section */}
             <div className="mt-10 bg-gray-800/40 rounded-2xl shadow-lg border border-gray-700/50 overflow-hidden">
               <div className="border-b border-gray-700">
                 <div className="flex">
@@ -205,7 +222,6 @@ const ProductDetail = () => {
               </div>
 
               <div className="p-6">
-                {/* Reviews Summary */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center">
                     <div className="text-4xl font-bold text-white mr-4">
@@ -237,7 +253,6 @@ const ProductDetail = () => {
                   </motion.button>
                 </div>
 
-                {/* Reviews List */}
                 {reviews.length === 0 ? (
                   <div className="py-8 text-center">
                     <p className="text-gray-400">No reviews yet. Be the first to review this product!</p>
@@ -276,7 +291,6 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {/* Add Review Form */}
                 <div id="write-review" className="mt-10 bg-gray-900/40 p-6 rounded-xl border border-gray-700/50">
                   <h3 className="text-xl font-semibold text-white mb-4">Write a Review</h3>
                   <div className="mb-6">
@@ -320,10 +334,8 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Product Info Section */}
           <div className="lg:col-span-5">
             <div className="bg-gray-800/40 p-6 rounded-2xl shadow-lg border border-gray-700/50 sticky top-8">
-              {/* Product Title and Price */}
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-white mb-2">{product.title}</h1>
                 <div className="flex items-center space-x-4">
@@ -341,7 +353,6 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Seller Info */}
               <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl mb-6 border border-gray-700/40">
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xl font-bold mr-3">
@@ -366,22 +377,17 @@ const ProductDetail = () => {
                 </motion.button>
               </div>
 
-              {/* Price */}
               <div className="flex items-baseline mb-6">
                 <span className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                   ${product.price}
                 </span>
-                {/* Optional: Show original price if there's a discount */}
-                {/*<span className="text-xl line-through text-gray-500 ml-3">${(product.price * 1.2).toFixed(2)}</span>*/}
               </div>
 
-              {/* Description */}
               <div className="mb-8">
                 <h3 className="text-lg font-medium text-white mb-2">Product Description</h3>
                 <p className="text-gray-300 leading-relaxed">{product.description}</p>
               </div>
 
-              {/* Game Info - For gaming products */}
               {product.platform && (
                 <div className="bg-gray-900/40 rounded-xl p-4 mb-8 border border-gray-700/50">
                   <div className="grid grid-cols-2 gap-4">
@@ -405,7 +411,6 @@ const ProductDetail = () => {
                 </div>
               )}
 
-              {/* Quantity Selector */}
               <div className="mb-8">
                 <label className="block text-white font-medium mb-2">Quantity</label>
                 <div className="flex h-12">
@@ -434,7 +439,6 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Add to Cart Button */}
               <div className="grid grid-cols-1 gap-3">
                 <motion.button
                   className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium flex items-center justify-center"

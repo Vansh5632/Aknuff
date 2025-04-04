@@ -1,5 +1,7 @@
+// server/routes/reviewRoutes.js
 const express = require("express");
 const Review = require("../models/Review");
+const authMiddleware = require('../middleware/auth');
 const router = express.Router();
 
 // GET reviews for a product
@@ -13,20 +15,25 @@ router.get("/:productId", async (req, res) => {
   }
 });
 
-// POST a new review
-router.post("/", async (req, res) => {
+// POST a new review (protected)
+router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { productId, text, rating } = req.body;
+    const { productId, text, rating, userId } = req.body;
 
-    if (!text || !rating || !productId) {
-      return res.status(400).json({ error: "All fields are required" });
+    if (!text || !rating || !productId || !userId) {
+      return res.status(400).json({ error: "All fields (productId, text, rating, userId) are required" });
+    }
+
+    // Ensure the userId matches the authenticated user
+    if (userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized: User ID does not match authenticated user" });
     }
 
     const newReview = new Review({
       productId,
       text,
       rating,
-      user: req.user ? req.user._id : null, // Modify based on authentication
+      user: userId,
     });
 
     await newReview.save();

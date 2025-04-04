@@ -1,10 +1,11 @@
+// client/src/pages/ProductSelling.jsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion'; // Ensure motion is used in the JSX below
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode'; // Corrected import for jwt-decode
+import { jwtDecode } from 'jwt-decode';
 
 const ProductSelling = () => {
   const [formData, setFormData] = useState({
@@ -99,8 +100,8 @@ const ProductSelling = () => {
         navigate('/products');
       } else {
         console.error('Failed to list product:', response.status, responseData);
-        if (response.status === 403) {
-          setError('Your session has expired. Please log in again.');
+        if (response.status === 401 || response.status === 403) {
+          setError('Your session has expired or you are not authorized. Please log in again.');
           logout();
           return;
         }

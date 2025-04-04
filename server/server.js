@@ -1,3 +1,4 @@
+// server/server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -44,7 +45,10 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ 
+  origin: process.env.FRONTEND_URL || 'http://localhost:5174', 
+  credentials: true 
+}));
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use('/uploads', express.static('uploads'));
@@ -168,7 +172,7 @@ wss.on('connection', (ws, req) => {
             const recipientInfo = clients.get(client);
             if (
               client.readyState === WebSocket.OPEN &&
-              (recipientInfo.userId === parsedMessage.recipient || recipientInfo.userId === clientInfo.userId) &&
+              (recipientInfo.userId ===  parsedMessage.recipient || recipientInfo.userId === clientInfo.userId) &&
               recipientInfo.productId === productId
             ) {
               client.send(
