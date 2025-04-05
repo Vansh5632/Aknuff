@@ -19,6 +19,7 @@ const fs = require('fs');
 const User = require('./models/User');
 const Message = require('./models/Message');
 const authMiddleware = require('./middleware/auth');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -46,7 +47,7 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024
 // Middleware
 app.use(express.json());
 app.use(cors({ 
-  origin: process.env.FRONTEND_URL || 'http://localhost:5174', 
+  origin: '*', 
   credentials: true 
 }));
 app.use(cookieParser());
@@ -83,6 +84,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/product', upload.single('image'), productRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Message Routes
 app.get('/api/auth/user/:id', authMiddleware, async (req, res) => {

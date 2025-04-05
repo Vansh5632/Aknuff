@@ -78,3 +78,24 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.adminLogin = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (username !== adminUsername || password !== adminPassword) {
+      return res.status(401).json({ message: 'Invalid admin credentials' });
+    }
+
+    const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({
+      user: { email: adminUsername, role: 'admin' },
+      token,
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

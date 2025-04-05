@@ -13,58 +13,69 @@ import Cart from './pages/Cart';
 import Chat from './pages/Chat';
 import ChatsList from './pages/ChatsList';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 const App = () => {
   return (
     <AuthProvider>
       <CartProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/products" element={<ProductListing />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route
-              path="/sell"
-              element={
-                <ProtectedRoute>
-                  <ProductSelling />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cart"
-              element={
-                <ProtectedRoute>
-                  <Cart />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/chat/:sellerId"
-              element={
-                <ProtectedRoute>
-                  <Chat />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/chats"
-              element={
-                <ProtectedRoute>
-                  <ChatsList />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/products" element={<ProductListing />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route
+            path="/sell"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <ProductSelling />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/:sellerId"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <Chat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chats"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <ChatsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </CartProvider>
     </AuthProvider>
   );
