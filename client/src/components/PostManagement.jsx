@@ -179,7 +179,7 @@ function PostManagement({ compact = false }) {
           <h3 className="text-2xl font-bold text-gray-800 bg-gradient-to-r from-[#6366f1] to-[#a855f7] bg-clip-text text-transparent">
             Post Management
           </h3>
-          {!compact && (
+          {/* {!compact && (
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -188,7 +188,7 @@ function PostManagement({ compact = false }) {
               <HiPlus className="h-5 w-5" />
               <span>Add New Post</span>
             </motion.button>
-          )}
+          )} */}
         </div>
         
         {!compact && (
@@ -309,17 +309,7 @@ function PostManagement({ compact = false }) {
                       >
                         <HiEye className="inline mr-1 h-4 w-4" /> View
                       </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Edit functionality would go here
-                        }}
-                        className="text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 transition-colors duration-200 shadow-sm border border-gray-100"
-                      >
-                        <HiPencil className="inline mr-1 h-4 w-4" /> Edit
-                      </motion.button>
+                     
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
