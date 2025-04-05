@@ -23,5 +23,6 @@ router.get('/users', adminAuth, adminController.getUsers);
 router.delete('/users/:id', adminAuth, adminController.deleteUser);
 router.get('/products', adminAuth, adminController.getProducts);
 router.delete('/products/:id', adminAuth, adminController.deleteProduct);
+router.get('/products/:id', adminAuth, adminController.getProductDetail);
 
 module.exports = router;
