@@ -491,7 +491,7 @@ const ProductListing = () => {
             </div>
             <div className="flex gap-4">
               <motion.button
-                onClick={() => navigate('/product-selling')}
+                onClick={() => navigate('/sell')}
                 className="px-6 py-3 bg-gradient-to-r from-[#6366f1] to-[#a855f7] rounded-full font-bold shadow-lg flex items-center"
                 whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(99,102,241,0.7)" }}
                 whileTap={{ scale: 0.95 }}
