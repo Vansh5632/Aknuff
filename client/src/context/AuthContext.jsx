@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  const API_URL ="https://aknuff-5yu4.vercel.app/api";
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
